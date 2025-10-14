@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Module Duyệt Báo Cáo - Trưởng Nhóm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary-blue': '#5aa9ff',
+            'muted': '#f8fafc',
+            'ink': '#0b1324'
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .spinner{border:2px solid #e5e7eb;border-top:2px solid #3b82f6;border-radius:50%;width:16px;height:16px;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle}
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    .header-container{background:linear-gradient(135deg,#2563eb 0%,#60a5fa 100%);position:relative;overflow:hidden}
+    .header-container::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E");opacity:.4}
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,0.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+    .modal.open{display:flex}
+    .toast{position:fixed;right:16px;bottom:16px;background:#0b1324;color:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:.2s}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .table-zebra tbody tr:nth-child(even){ background-color:#f8fafc; }
+    .table-vdiv{ border-collapse: separate; border-spacing: 0; }
+    .table-vdiv th+th, .table-vdiv td+td{ border-left:1px solid #e5e7eb; }
+    .submit-btn{background:linear-gradient(135deg,#3b82f6 0%,#60a5fa 100%);box-shadow:0 4px 6px rgba(37,99,235,.1),0 1px 3px rgba(37,99,235,.08);transition:transform .2s ease,box-shadow .2s ease,opacity .2s ease,filter .2s ease;border-radius:9999px;position:relative}
+    .submit-btn:hover{transform:translateY(-1px);box-shadow:0 7px 14px rgba(37,99,235,.12),0 3px 6px rgba(37,99,235,.08);filter:brightness(1.03)}
+    .submit-btn:active{transform:translateY(0);opacity:.95}
+    .badge{background:rgba(90,169,255,.15);color:#1e40af;border:1px solid rgba(90,169,255,.35);padding:2px 8px;border-radius:9999px;font-size:12px;font-weight:600}
+    .group-btn{padding:0.5rem 1rem;border-radius:9999px;border:1px solid #bfdbfe;background:#eff6ff;color:#1e40af;font-weight:600;transition:all .2s}
+    .group-btn:hover{background:#dbeafe;border-color:#93c5fd}
+    .group-btn.active{background:linear-gradient(135deg,#3b82f6 0%,#60a5fa 100%);color:#fff;border-color:#3b82f6}
+  </style>
+</head>
+<body class="bg-muted min-h-screen text-gray-800" style="font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'">
+  <header class="header-container w-full">
+    <div class="relative z-10 w-full p-8 md:p-10">
+      <div class="flex items-center space-x-2 mb-3">
+        <div class="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white" style="background-color: rgba(255,255,255,0.15); backdrop-filter: blur(5px);">Trưởng nhóm</div>
+      </div>
+      <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">Module Duyệt Báo Cáo</h1>
+      <p class="text-blue-100 text-sm md:text-base">Dành cho trưởng nhóm DQA.</p>
+    </div>
+  </header>
+
+  <main class="w-full p-4 md:p-6">
+    <div class="mb-4 flex items-center gap-2 flex-wrap">
+      <button class="px-3 py-1 rounded-full border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50 tab-btn" data-target="form-approve">Duyệt báo cáo</button>
+    </div>
+
+    <section id="form-approve" class="bg-white p-4 md:p-6 rounded-xl shadow-md">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-blue-800">Danh sách báo cáo chờ duyệt</h2>
+        <div class="flex items-center gap-2 text-xs text-gray-500">
+          <label for="secret-code" class="hidden md:block">Mã bảo mật</label>
+          <input id="secret-code" type="password" placeholder="Mã bảo mật" autocomplete="off" class="border border-blue-200 rounded bg-white text-xs px-2 py-1" style="min-width:160px" />
+          <button id="btn-debug" class="px-2 py-0.5 rounded border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100">Debug</button>
+        </div>
+      </div>
+
+      <!-- Group Filter -->
+      <div class="mb-4 flex items-center gap-3 flex-wrap">
+        <span class="text-sm font-medium text-gray-700">Chọn nhóm:</span>
+        <button id="btn-group-all" class="group-btn active" data-group="all">Tất cả</button>
+        <button id="btn-group-linh" class="group-btn" data-group="linh">
+          <span class="mr-1">👥</span> Nhóm Linh <span class="text-xs opacity-75">(8)</span>
+        </button>
+        <button id="btn-group-hieu" class="group-btn" data-group="hieu">
+          <span class="mr-1">👥</span> Nhóm Hiếu <span class="text-xs opacity-75">(7)</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3">
+        <div class="md:col-span-3">
+          <label class="block text-sm text-gray-700 mb-1">Từ khóa</label>
+          <input id="flt-q" type="text" placeholder="Mã/tiêu đề/người lập" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm text-gray-700 mb-1">Trạng thái</label>
+          <select id="flt-status" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+            <option value="Pending1" selected>Chờ phê duyệt</option>
+            <option value="Pending2">Trưởng nhóm Review</option>
+            <option value="Approved">Done</option>
+            <option value="TestBen">Test bền</option>
+            <option value="ChangesRequested">Đang sửa</option>
+            <option value="All">Tất cả</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm text-gray-700 mb-1">Từ ngày</label>
+          <input id="flt-from" type="date" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm text-gray-700 mb-1">Đến ngày</label>
+          <input id="flt-to" type="date" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white" />
+        </div>
+        <div class="md:col-span-3 flex items-end gap-2">
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-gray-600">Chế độ</label>
+            <select id="flt-mode" class="border border-blue-200 rounded bg-white text-sm px-2 py-1">
+              <option value="All" selected>Tất cả</option>
+              <option value="Day">Ngày</option>
+              <option value="Week">Tuần</option>
+              <option value="Month">Tháng</option>
+            </select>
+          </div>
+          <button id="btn-search" class="submit-btn px-4 py-2 text-white font-semibold">Tra cứu</button>
+          <button id="btn-reset" class="px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Xóa lọc</button>
+        </div>
+      </div>
+
+      <div id="debug-panel" class="mt-2 p-2 border border-amber-300 rounded bg-amber-50 text-xs" style="display:none">
+        <div class="flex items-center justify-between mb-1">
+          <div class="font-semibold">Debug API</div>
+          <div class="flex items-center gap-2">
+            <button id="dbg-load-json" class="px-2 py-0.5 rounded border border-blue-300 bg-white hover:bg-blue-50 text-blue-700">Nạp JSON thủ công</button>
+          </div>
+        </div>
+        <div class="mb-1">URL: <span id="dbg-url" class="break-all"></span></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div>
+            <div class="text-gray-600 mb-1">Response (raw)</div>
+            <textarea id="dbg-raw" class="w-full h-40 border rounded p-1"></textarea>
+          </div>
+          <div>
+            <div class="text-gray-600 mb-1">First row (normalized)</div>
+            <textarea id="dbg-row" class="w-full h-40 border rounded p-1"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-2 overflow-auto border border-gray-200 rounded-lg">
+        <table class="min-w-[1100px] w-full text-sm table-zebra table-vdiv">
+          <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+            <tr class="text-left text-gray-700">
+              <th class="px-3 py-2 min-w-[120px]">Mã báo cáo</th>
+              <th class="px-3 py-2 min-w-[260px]">Tiêu đề</th>
+              <th class="px-3 py-2 min-w-[160px]">Người lập</th>
+              <th class="px-3 py-2 min-w-[140px]">Ngày nộp</th>
+              <th class="px-3 py-2 min-w-[140px]">Hạn mong muốn</th>
+              <th class="px-3 py-2 min-w-[140px]">Hạn đánh giá</th>
+              <th class="px-3 py-2 min-w-[120px]">Trạng thái</th>
+              <th class="px-3 py-2 min-w-[160px]">Kết luận</th>
+              <th class="px-3 py-2 min-w-[220px]">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="list-body" class="divide-y divide-gray-100">
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="pager" class="mt-2 flex items-center justify-between" style="display:none">
+        <div class="text-sm text-gray-600">
+          <span id="page-info">Trang 1/1 (0 dòng)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">Hiển thị</label>
+          <select id="page-size" class="border border-blue-300 rounded-lg bg-slate-100 p-1 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+          </select>
+          <button id="prev" class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Trước</button>
+          <button id="next" class="px-3 py-1 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Sau</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Approve -->
+  <div id="modal-approve" class="modal" aria-hidden="true">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-4">
+      <h3 class="text-lg font-semibold text-blue-800 mb-1">Duyệt báo cáo</h3>
+      <p class="text-sm text-gray-600 mb-3">Nhập bình luận (không bắt buộc)</p>
+      <textarea id="approve-comment" rows="4" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white" placeholder="Ghi chú cho người lập..."></textarea>
+      <div class="mt-3 flex items-center justify-end gap-2">
+        <button data-close="modal-approve" class="px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Hủy</button>
+        <button id="approve-do" class="submit-btn px-4 py-2 text-white font-semibold">Xác nhận duyệt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Reject -->
+  <div id="modal-reject" class="modal" aria-hidden="true">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-4">
+      <h3 class="text-lg font-semibold text-red-700 mb-1">Từ chối báo cáo</h3>
+      <p class="text-sm text-gray-600 mb-3">Vui lòng nêu lý do</p>
+      <textarea id="reject-reason" rows="4" class="w-full border border-red-300 rounded-lg bg-red-50 p-2 focus:outline-none focus:ring-2 focus:ring-red-200 focus:bg-white" placeholder="Lý do từ chối..."></textarea>
+      <div class="mt-3 flex items-center justify-end gap-2">
+        <button data-close="modal-reject" class="px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Hủy</button>
+        <button id="reject-do" class="px-4 py-2 rounded-full text-white font-semibold" style="background:#ef4444">Xác nhận từ chối</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Request Changes -->
+  <div id="modal-req" class="modal" aria-hidden="true">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-4">
+      <h3 class="text-lg font-semibold text-amber-700 mb-1">Yêu cầu bổ sung</h3>
+      <div class="mb-3">
+        <label class="block text-sm text-gray-700 mb-1">Bình luận yêu cầu</label>
+        <textarea id="req-comment" rows="4" class="w-full border border-amber-300 rounded-lg bg-amber-50 p-2 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:bg-white" placeholder="Nội dung cần bổ sung..."></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="block text-sm text-gray-700 mb-1">Hạn bổ sung (không bắt buộc)</label>
+        <input id="req-due" type="date" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white" />
+      </div>
+      <div class="mt-3 flex items-center justify-end gap-2">
+        <button data-close="modal-req" class="px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Hủy</button>
+        <button id="req-do" class="px-4 py-2 rounded-full text-white font-semibold" style="background:#f59e0b">Gửi yêu cầu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Report Preview -->
+  <div id="modal-report" class="modal" aria-hidden="true">
+    <div class="w-full max-w-5xl bg-white rounded-xl shadow-lg p-0 overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-2 border-b">
+        <div class="text-sm text-gray-700">Xem báo cáo: <span id="report-title" class="font-semibold"></span></div>
+        <div class="flex items-center gap-2">
+          <a id="report-open-new" href="#" target="_blank" class="text-primary-blue text-sm underline">Mở tab mới</a>
+          <button data-close="modal-report" class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Đóng</button>
+        </div>
+      </div>
+      <div class="h-[70vh]">
+        <iframe id="report-frame" src="about:blank" class="w-full h-full" title="Report preview"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Task Detail -->
+  <div id="modal-task" class="modal" aria-hidden="true">
+    <div class="w-full max-w-3xl bg-white rounded-xl shadow-lg p-0 overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-2 border-b">
+        <div class="text-sm text-gray-700">Chi tiết tác vụ: <span id="task-title" class="font-semibold"></span></div>
+        <div class="flex items-center gap-2">
+          <a id="task-open-new" href="#" target="_blank" class="text-primary-blue text-sm underline">Mở tab mới</a>
+          <button data-close="modal-task" class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Đóng</button>
+        </div>
+      </div>
+      <div class="p-4 text-sm" id="task-content">Đang tải...</div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // ===== Config
+    const WEBHOOK_TEST = 'https://iatzhxxuk.tino.page/webhook/1df40252-6bff-4392-bb1a-5ae72ee748d1';
+    const WEBHOOK_PROD = WEBHOOK_TEST.replace('/webhook-test/','/webhook/');
+    const REPORTS_QUERY_URL = 'https://iatzhxxuk.tino.page/webhook/7a3b7bb9-0c18-4d62-88fd-f86bddb1b682';
+    const FORM_ACTION_URL = 'https://iatzhxxuk.tino.page/webhook/truongnhompd';
+
+    // ===== Group Definitions
+    const NHOM_LINH = [
+      'Bùi Đặng Quốc Huy',
+      'Nguyễn Hữu Thịnh',
+      'Trần Hiếu Nghĩa',
+      'Lại Quốc Lộc',
+      'Lê Ngọc Ánh',
+      'Lê Văn Sơn',
+      'Nguyễn Thị Hiền',
+      'Phạm Thị Minh'
+    ];
+
+    const NHOM_HIEU = [
+      'Đỗ Quang Long',
+      'Phạm Thành Trung Kiên',
+      'Thái Thị Giang',
+      'Vũ Thị Hằng',
+      'Đào Tuấn Kỳ',
+      'Lê Thị Thảo',
+      'Vũ Thị Thanh Hiền'
+    ];
+
+    // ===== State
+    let ALL_ITEMS = [];
+    let FILTERED = [];
+    let CURRENT_PAGE = 1;
+    let PAGE_SIZE = 20;
+    let CURRENT_ITEM_ID = null;
+    let CURRENT_ACTION = null;
+    let SELECTED_GROUP = 'all'; // 'all' | 'linh' | 'hieu'
+
+    // ===== Helpers
+    function normalizeVietnamese(str){
+      return String(str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+    }
+
+    function isInGroup(reporterName, group){
+      if (group === 'all') return true;
+      const normalized = normalizeVietnamese(reporterName);
+      const targetGroup = group === 'linh' ? NHOM_LINH : NHOM_HIEU;
+      return targetGroup.some(name => normalizeVietnamese(name) === normalized);
+    }
+
+    function showToast(message, type){
+      const el = document.getElementById('toast'); if (!el) return;
+      el.textContent = String(message||'');
+      el.style.background = type==='error' ? '#b91c1c' : '#0b1324';
+      el.classList.add('show');
+      setTimeout(()=> el.classList.remove('show'), 2200);
+    }
+
+    function generateQaPdCode(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let suffix = '';
+      for (let i=0; i<6; i++){ suffix += chars.charAt(Math.floor(Math.random()*chars.length)); }
+      return `QA.RV.${yyyy}${mm}${dd}-${suffix}`;
+    }
+
+    function openModal(id){ const m=document.getElementById(id); if(m){ m.classList.add('open'); m.setAttribute('aria-hidden','false'); } }
+    function closeModal(id){ const m=document.getElementById(id); if(m){ m.classList.remove('open'); m.setAttribute('aria-hidden','true'); } }
+
+    function parseDateFlexible(s){
+      try{
+        const v = String(s||'').trim(); if (!v) return null;
+        if (/^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(v);
+        const m = v.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+        if (m){ const d=Number(m[1]), mm=Number(m[2])-1, y=Number(m[3]<100?('20'+m[3]):m[3]); return new Date(y,mm,d); }
+        const t = Date.parse(v); return isNaN(t)?null:new Date(t);
+      }catch(_){ return null; }
+    }
+
+    function fmtDmy(s){ const d=parseDateFlexible(s); if(!d) return ''; const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=d.getFullYear(); return `${dd}/${mm}/${yy}`; }
+    function nowIsoMinute(){ const d=new Date(); const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); const hh=String(d.getHours()).padStart(2,'0'); const mi=String(d.getMinutes()).padStart(2,'0'); return `${yy}-${mm}-${dd} ${hh}:${mi}`; }
+    function nowViMinute(){ const d=new Date(); const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=d.getFullYear(); const hh=String(d.getHours()).padStart(2,'0'); const mi=String(d.getMinutes()).padStart(2,'0'); return `${dd}/${mm}/${yy} ${hh}:${mi}`; }
+    function appendRowParams(p, it){
+      try{
+        const row = it || {};
+        p.append('header_code','Mã báo cáo'); p.append('field_code','code'); p.append('code', String(row.code||''));
+        p.append('header_title','Tiêu đề'); p.append('field_title','title'); p.append('title', String(row.title||''));
+        p.append('header_reporter','Người lập'); p.append('field_reporter','reporter'); p.append('reporter', String(row.reporter||''));
+        p.append('header_reporterEmail','Email'); p.append('field_reporterEmail','reporterEmail'); p.append('reporterEmail', String(row.reporterEmail||''));
+        p.append('header_submitDate','Ngày nộp'); p.append('field_submitDate','submitDate'); p.append('submitDate', String(row.submitDate||''));
+        p.append('header_wishDate','Hạn mong muốn'); p.append('field_wishDate','wishDate'); p.append('wishDate', String(row.wishDate||''));
+        p.append('header_dueDate','Hạn đánh giá'); p.append('field_dueDate','dueDate'); p.append('dueDate', String(row.dueDate||''));
+        p.append('header_status','Trạng thái'); p.append('field_status','status'); p.append('status', String(row.status||''));
+        p.append('header_conclusion','Kết luận'); p.append('field_conclusion','conclusion'); p.append('conclusion', String(row.conclusion||''));
+        p.append('header_reportUrl','Liên kết báo cáo'); p.append('field_reportUrl','reportUrl'); p.append('reportUrl', String(row.reportUrl||''));
+        p.append('header_sentTime','Thời gian gửi'); p.append('field_sentTime','sent_time'); p.append('sent_time', nowViMinute());
+        p.append('header_sentTimeISO','Thời gian gửi (ISO phút)'); p.append('field_sentTimeISO','sent_time_iso'); p.append('sent_time_iso', nowIsoMinute());
+      }catch(_){ }
+    }
+      function canonicalStatus(s){
+      const v = String(s||'')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/\s+/g,'')
+        .toLowerCase();
+      if (['pending1','chopheduyet1','cpd1','pending01','pending_1'].includes(v)) return 'pending1';
+      if (['pending2','chopheduyet2','cpd2','pending02','pending_2','truongnhomreview'].includes(v)) return 'pending2';
+      if (['pending','chopheduyet','cho_duyet','cho'].includes(v)) return 'pending1';
+      if (['cancel','canceled','cancelled','huy','huybo','huybo_','dahuy','da_huy','huyyeu_cau','huyyeucau'].includes(v)) return 'cancel';
+      if (['doing','inprogress','dang','danglam','dangthuchien','dang_thuc_hien'].includes(v)) return 'doing';
+      if (['approved','done','hoanthanh','daduyet','dauyet'].includes(v)) return 'approved';
+      if (['changesrequested','dangsua','yeucaubosung','sua'].includes(v)) return 'changesrequested';
+      if (['testben','test_ben'].includes(v)) return 'testben';
+      if (['rejected','tuchoi'].includes(v)) return 'rejected';
+      return v;
+    }
+
+    // ===== Employee mapping
+    const EMPLOYEE_EMAIL = (()=>{
+      const normalize = s => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+      const raw = {
+        "Bùi Đặng Quốc Huy":"huy.bui@karofi.vn",
+        "Đào Hoàng Dương":"duong.dao@karofi.vn",
+        "Đỗ Quang Long":"long.do@karofi.vn",
+        "Hà Mỹ Linh":"linh.ha@karofi.vn",
+        "Nguyễn Hữu Thịnh":"thinh.nguyen2@karofi.vn",
+        "Nguyễn Văn Hiếu":"hieu.nguyen2@karofi.vn",
+        "Nguyễn Văn Linh":"linh.nguyen@karofi.vn",
+        "Phạm Thành Trung Kiên":"kien.pham1@karofi.vn",
+        "Thái Thị Giang":"giang.thai@karofi.vn",
+        "Trần Hiếu Nghĩa":"nghia.tran@karofi.vn",
+        "Vũ Thị Hằng":"hang.vu@karofi.vn",
+        "Đào Tuấn Kỳ":"ky.dao@karofi.vn",
+        "Đỗ Thế Cường":"cuong.do@karofi.vn",
+        "Lại Quốc Lộc":"loc.lai@karofi.vn",
+        "Lê Ngọc Ánh":"anh.le1@karofi.vn",
+        "Lê Thị Thanh Nhàn":"nhan.le@karofi.vn",
+        "Lê Thị Thảo":"thao.le@karofi.vn",
+        "Lê Văn Sơn":"son.le2@karofi.vn",
+        "Nguyễn Thị Hiền":"hien.nguyen1@karofi.vn",
+        "Phạm Thị Minh":"minh.pham1@karofi.vn",
+        "Vũ Duy Minh":"minh.vu@karofi.vn",
+        "Vũ Thị Thanh Hiền":"hien.vu2@karofi.vn"
+      };
+      const map = {}; Object.keys(raw).forEach(k => map[normalize(k)] = raw[k]);
+      return { get: (name)=> map[normalize(name)] || '' };
+    })();
+
+    // ===== Data fetching
+    async function fetchReports(params){
+      const headerMapReports = {
+        header_id: 'ID',
+        field_id: 'id',
+        header_code: 'Mã báo cáo',
+        field_code: 'code',
+        header_title: 'Tiêu đề',
+        field_title: 'title',
+        header_reporter: 'Người lập',
+        field_reporter: 'reporter',
+        header_reporterEmail: 'Email',
+        field_reporterEmail: 'reporterEmail',
+        header_submitDate: 'Ngày nộp',
+        field_submitDate: 'submitDate',
+        header_wishDate: 'Hạn mong muốn',
+        field_wishDate: 'wishDate',
+        header_dueDate: 'Hạn đánh giá',
+        field_dueDate: 'dueDate',
+        header_status: 'Trạng thái',
+        field_status: 'status',
+        header_conclusion: 'Kết luận',
+        field_conclusion: 'conclusion',
+        header_reportUrl: 'Liên kết báo cáo',
+        field_reportUrl: 'reportUrl'
+      };
+
+      const normalizeDate = (v)=>{ const d=parseDateFlexible(v); if(!d) return ''; const yy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; };
+      const fromRaw = params && typeof params.from==='string' ? params.from : '';
+      const toRaw = params && typeof params.to==='string' ? params.to : '';
+      const qRaw = params && typeof params.q==='string' ? params.q : '';
+      const statusRaw = params && typeof params.status==='string' ? params.status : '';
+      const modeRaw = params && typeof params.mode==='string' ? params.mode : '';
+      const pageRaw = params && (params.page!==undefined) ? String(params.page) : '';
+      const pageSizeRaw = params && (params.pageSize!==undefined) ? String(params.pageSize) : '';
+
+      const fromIso = normalizeDate(fromRaw);
+      const toIso = normalizeDate(toRaw);
+      const dateParams = {};
+      if (fromIso){ Object.assign(dateParams, { from:fromIso, fromDate:fromIso, date_from:fromIso, start_date:fromIso, submitFrom:fromIso, ngay_tu:fromIso }); }
+      if (toIso){ Object.assign(dateParams, { to:toIso, toDate:toIso, date_to:toIso, end_date:toIso, submitTo:toIso, ngay_den:toIso }); }
+
+      const qParams = {};
+      if (qRaw){ Object.assign(qParams, { q:qRaw, keyword:qRaw, search:qRaw, s:qRaw, code:qRaw, title:qRaw, reporter:qRaw }); }
+
+      function statusToViLabel(code){
+        const m = {
+          Pending1:'Chờ phê duyệt',
+          Pending2:'Trưởng nhóm Review',
+          Pending:'Chờ phê duyệt',
+          Approved:'Done',
+          ChangesRequested:'Đang sửa',
+          TestBen:'Test bền',
+          Rejected:'Từ chối'
+        };
+        return m[code] || code;
+      }
+      const statusParams = {};
+      if (statusRaw && statusRaw!=='All'){
+        // Với nhóm chờ (Pending1/Pending2) không filter theo trạng thái để không loại "Trưởng nhóm Review"
+        const isPendingGroup = ['Pending','Pending1','Pending2'].includes(String(statusRaw));
+        if (!isPendingGroup){
+          const labelVi = statusToViLabel(statusRaw);
+          Object.assign(statusParams, {
+            status: labelVi,
+            state: labelVi,
+            trangthai: labelVi,
+            status_vi: labelVi,
+            status_code: statusRaw
+          });
+        }
+      }
+
+      const modeParams = {};
+      if (modeRaw && modeRaw!=='All'){
+        Object.assign(modeParams, { mode:modeRaw, range:modeRaw, period:modeRaw });
+      }
+
+      const pageParams = {};
+      const pg = Math.max(1, parseInt(pageRaw||'1', 10)||1);
+      const ps = Math.max(1, parseInt(pageSizeRaw||'20', 10)||20);
+      const offset = (pg-1)*ps;
+      Object.assign(pageParams, { page:String(pg), page_index:String(pg), pageNumber:String(pg), pageSize:String(ps), limit:String(ps), size:String(ps), per_page:String(ps), offset:String(offset) });
+
+      // Bỏ filter phía server: chỉ gửi action + header mapping, lọc tại client
+      const qs = new URLSearchParams({ action:'reports_query', ...headerMapReports, _ts: Date.now().toString() });
+      function setDebug(url, raw, first){ try{ const u=document.getElementById('dbg-url'); if(u) u.textContent = url; const t=document.getElementById('dbg-raw'); if(t) t.value = raw||''; const f=document.getElementById('dbg-row'); if(f) f.value = first? JSON.stringify(first,null,2):''; }catch(_){ } }
+      async function fetchJson(url){ const full=`${url}?${qs.toString()}`; const r = await fetch(full, { method:'GET', cache:'no-store' }); const txt = await r.text(); let parsed=null; try{ parsed=JSON.parse(txt);}catch{} setDebug(full, (txt && txt.length? txt: '[empty]').slice(0,4000), null); return { ok:r.ok, parsed, raw:txt, status:r.status, fullUrl:full }; }
+      async function postJson(url, params){ const body = new URLSearchParams(params||{}); const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body: body.toString(), cache:'no-store' }); const txt = await r.text(); let parsed=null; try{ parsed=JSON.parse(txt);}catch{} setDebug(url+' [POST]', (txt && txt.length? txt: '[empty]').slice(0,4000), null); return { ok:r.ok, parsed, raw:txt, status:r.status, fullUrl:url+' [POST]' }; }
+      async function fetchJsonMinimal(url){
+        const qs2 = new URLSearchParams({ action:'reports_query', ...headerMapReports, _ts: Date.now().toString() });
+        const full=`${url}?${qs2.toString()}`; const r=await fetch(full,{method:'GET'}); const txt=await r.text(); let parsed=null; try{ parsed=JSON.parse(txt);}catch{} setDebug(full, txt.slice(0,4000), null); return { ok:r.ok, parsed, raw:txt, status:r.status, fullUrl:full };
+      }
+      function safeParse(txt){ try{ return JSON.parse(txt); }catch(_){ return null; } }
+      // Gom toàn bộ các mảng object xuất hiện trong JSON, không chỉ mảng đầu tiên
+      function collectRowsDeep(json){
+        if(!json) return [];
+        if(Array.isArray(json)) return json;
+        const out=[]; const seen=new Set(); const q=[json];
+        try{
+          while(q.length){
+            const cur=q.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur);
+            for(const v of Object.values(cur)){
+              if(Array.isArray(v)){
+                if(v.length && typeof v[0]==='object') out.push(...v);
+                v.forEach(x=>{ if(x && typeof x==='object') q.push(x); });
+                continue;
+              }
+              if(typeof v==='string'){
+                const j = safeParse(v); if(j){ q.push(j); continue; }
+              }
+              if(v && typeof v==='object') q.push(v);
+            }
+          }
+        }catch(_){ }
+        return out.length? out: (typeof json==='object'? [json]: []);
+      }
+      let resp = await fetchJson(REPORTS_QUERY_URL);
+      try{ console.log('[Reports] URL:', resp.fullUrl, 'status:', resp.status); }catch(_){ }
+      if (!resp.ok || /could not be started/i.test(String(resp.parsed?.message||''))){
+        resp = await fetchJson(REPORTS_QUERY_URL.replace('/webhook-test/','/webhook/'));
+      }
+      // Also try the inverse variant if still not OK or body empty
+      if ((!resp.ok || !resp.raw || !String(resp.raw).trim()) && REPORTS_QUERY_URL.includes('/webhook/')){
+        const alt = REPORTS_QUERY_URL.replace('/webhook/','/webhook-test/');
+        if (alt !== REPORTS_QUERY_URL){
+          try{ console.warn('[Reports] Retry with webhook-test variant'); }catch(_){ }
+          resp = await fetchJson(alt);
+        }
+      }
+      // Fallback 1: nếu body rỗng nhưng status OK, thử gọi tối giản (bỏ bộ lọc) để xác thực
+      if (resp.ok && (!resp.raw || !String(resp.raw).trim())){
+        try{ console.warn('[Reports] Empty body, retry with minimal params'); }catch(_){ }
+        resp = await fetchJsonMinimal(REPORTS_QUERY_URL);
+        if ((!resp.ok || !resp.raw || !String(resp.raw).trim()) && REPORTS_QUERY_URL.includes('/webhook/')){
+          const alt = REPORTS_QUERY_URL.replace('/webhook/','/webhook-test/');
+          if (alt !== REPORTS_QUERY_URL){
+            try{ console.warn('[Reports] Minimal retry with webhook-test variant'); }catch(_){ }
+            resp = await fetchJsonMinimal(alt);
+          }
+        }
+      }
+      if (!resp.ok) return [];
+      // Fallback 2: POST với cùng tham số nếu GET trả rỗng
+      if (resp.ok && (!resp.raw || !String(resp.raw).trim())){
+        try{ console.warn('[Reports] Empty body on GET, retry with POST'); }catch(_){ }
+        const postParams = { action:'reports_query', ...Object.fromEntries(qs.entries()) };
+        delete postParams._ts; // sẽ sinh lại timestamp mới
+        resp = await postJson(REPORTS_QUERY_URL, { ...postParams, _ts: Date.now().toString() });
+      }
+      // Nếu POST vẫn rỗng, thử POST tối giản
+      if (resp.ok && (!resp.raw || !String(resp.raw).trim())){
+        const minimal = { action:'reports_query', ...headerMapReports, _ts: Date.now().toString() };
+        resp = await postJson(REPORTS_QUERY_URL, minimal);
+      }
+      const baseJson = resp.parsed ?? safeParse(resp.raw);
+      const rows = collectRowsDeep(baseJson);
+      try{ console.log('[Reports] rows.length =', rows?.length||0); }catch(_){ }
+      function normalizeStatus(val){
+        const v = String(val||'').trim().toLowerCase();
+        const v2 = v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'');
+        if (!v) return 'Pending1';
+        // Pending 1
+        if ([
+          'pending1','pending 1','cho phe duyet 1','chờ phê duyệt 1','cho_phe_duyet_1','cho duyet 1','chopheduyet1','cpd1'
+        ].includes(v)) return 'Pending1';
+        // Pending 2
+        if ([
+          'pending2','pending 2','cho phe duyet 2','chờ phê duyệt 2','cho_phe_duyet_2','cho duyet 2','chopheduyet2','cpd2'
+        ].includes(v) || v2==='truongnhomreview' || v.includes('trưởng nhóm review') || v.includes('truong nhom review')) return 'Pending2';
+        // Generic pending -> map về Pending1 cho Trưởng nhóm
+        if (['pending','cho phe duyet','chờ phê duyệt','cho_duyet','cho'].includes(v)) return 'Pending1';
+        if (['approved','done','hoan thanh','hoàn thành','da duyet','đã duyệt'].includes(v)) return 'Approved';
+        if (['changesrequested','dang sua','đang sửa','yeu cau bo sung','yêu cầu bổ sung','sua'].includes(v)) return 'ChangesRequested';
+        if (['test ben','test_ben','testben'].includes(v)) return 'TestBen';
+        if (['rejected','tu choi','từ chối'].includes(v)) return 'Rejected';
+        return val;
+      }
+      function lowerKeyMap(obj){
+        const map={};
+        try{ Object.keys(obj||{}).forEach(k=>{ map[String(k).toLowerCase()] = obj[k]; }); }catch(_){ }
+        return map;
+      }
+      function getFrom(lowerObj, ...keys){
+        for(const k of keys){
+          const kk = String(k||'').toLowerCase();
+          if (lowerObj.hasOwnProperty(kk)) return lowerObj[kk];
+        }
+        return '';
+      }
+      const normalizedRows = rows.map(x=>{
+        const lx = lowerKeyMap(x||{});
+        const id = getFrom(lx,'id','ID','reportId','report_id');
+        const code = getFrom(lx,'code','mã báo cáo','ma','taskcode','reportCode');
+        const title = getFrom(lx,'title','tiêu đề','name','reportTitle','tên');
+        const reporter = getFrom(lx,'reporter','người lập','employee','author','nhân viên');
+        const reporterEmail = getFrom(lx,'reporterEmail','email');
+        const submitDate = getFrom(lx,'submitDate','ngày nộp','date','ngaynop','ngaynộp','ngaynộp');
+        const wishDate = getFrom(lx,'wishDate','hạn mong muốn','hanmongmuon','wish');
+        const dueDate = getFrom(lx,'dueDate','deadline','hạn đánh giá');
+        const statusRaw = getFrom(lx,'status','trạng thái','trangthai');
+        const conclusion = getFrom(lx,'conclusion','kết luận','ketluan');
+        const reportUrl = getFrom(lx,'reportUrl','liên kết báo cáo','url','link','href');
+        // Map chuyên biệt: nếu status là "Chờ phê duyệt 1/2" thì normalize về Pending1/Pending2
+        return {
+          id: id || code || '',
+          code: code || id || '',
+          title: title || '',
+          reporter: reporter || '',
+          reporterEmail: reporterEmail || '',
+          submitDate: submitDate || '',
+          wishDate: wishDate || '',
+          dueDate: dueDate || '',
+          status: (function(){
+            const s = String(statusRaw||'').trim().toLowerCase();
+            if (s.includes('chờ phê duyệt 1') || s.includes('cho phe duyet 1')) return 'Pending1';
+            if (s.includes('chờ phê duyệt 2') || s.includes('cho phe duyet 2')) return 'Pending2';
+            return normalizeStatus(statusRaw || 'Pending1');
+          })(),
+          conclusion: conclusion || '',
+          reportUrl: reportUrl || ''
+        };
+      });
+      // Loại bỏ các dòng rỗng/không đủ thông tin và trùng lặp để tránh hiển thị hàng trống
+      const isMeaningful = (r)=>{
+        const hasId = String(r?.id||'').trim().length>0;
+        const hasMain = ['code','title','reporter','reportUrl'].some(k=> String(r?.[k]||'').trim().length>0);
+        return hasId || hasMain;
+      };
+      const seenKeys = new Set();
+      const cleanedRows = normalizedRows.filter(r=>{
+        if (!isMeaningful(r)) return false;
+        const key = [r.id,r.code,r.title,r.reporter,r.submitDate,r.reportUrl].map(x=> String(x||'').trim().toLowerCase()).join('|');
+        if (seenKeys.has(key)) return false; seenKeys.add(key); return true;
+      });
+      try{ setDebug(resp.fullUrl||'', resp.raw||'', cleanedRows[0]||null); if(!resp.raw || !String(resp.raw).trim()){ const panel=document.getElementById('debug-panel'); if(panel) panel.style.display='block'; } }catch(_){ }
+      // Log thống kê theo trạng thái để dễ debug
+      try{
+        const statusCounts = (cleanedRows||[]).reduce((acc, it)=>{
+          const k = String(it?.status||'').toLowerCase(); acc[k] = (acc[k]||0)+1; return acc;
+        }, {});
+        console.log('[Reports] status counts =', statusCounts);
+      }catch(_){ }
+      return cleanedRows;
+    }
+
+    // ===== Render
+    function applyFilters(all){
+      const q = (document.getElementById('flt-q')?.value || '').trim().toLowerCase();
+      const st = (document.getElementById('flt-status')?.value || 'All');
+      const from = parseDateFlexible(document.getElementById('flt-from')?.value || '');
+      const to   = parseDateFlexible(document.getElementById('flt-to')?.value || '');
+      const out = all.filter(it=>{
+        const okQ = !q || [it.code,it.title,it.reporter].join(' ').toLowerCase().includes(q);
+        const canon = canonicalStatus(it.status);
+        // Loại bỏ Cancel/Doing khi chọn "Tất cả"
+        const okAllPrune = (st==='All') ? (!['cancel','doing'].includes(canon)) : true;
+        const okS = (st==='All') || (canon===canonicalStatus(st));
+        // Nếu chọn Pending1: chỉ cho Trưởng nhóm xem các báo cáo ở Pending1
+        // Nếu chọn Pending2: chỉ xem các báo cáo chuyển lên Trưởng phòng
+        const okG = isInGroup(it.reporter, SELECTED_GROUP);
+        let okD = true;
+        const sub = parseDateFlexible(it.submitDate);
+        // Ngoại lệ: Pending1/Pending2 không tuân theo lọc thời gian
+        if (!['pending1','pending2'].includes(canon)){
+          if (from && sub) okD = okD && (sub.getTime() >= new Date(from.getFullYear(),from.getMonth(),from.getDate()).getTime());
+          if (to && sub) okD = okD && (sub.getTime() <= new Date(to.getFullYear(),to.getMonth(),to.getDate(),23,59,59,999).getTime());
+        }
+        return okQ && okS && okG && okD && okAllPrune;
+      });
+      // Ưu tiên hiển thị Pending1/Pending2 lên đầu, sau đó sắp theo ngày nộp mới nhất
+      out.sort((a,b)=>{
+        const pa = ['pending1','pending2'].includes(canonicalStatus(a.status)) ? 0 : 1;
+        const pb = ['pending1','pending2'].includes(canonicalStatus(b.status)) ? 0 : 1;
+        if (pa!==pb) return pa-pb;
+        const ta = parseDateFlexible(a.submitDate)?.getTime()||0;
+        const tb = parseDateFlexible(b.submitDate)?.getTime()||0;
+        return tb - ta;
+      });
+      return out;
+    }
+
+    function updatePager(total){
+      const pager = document.getElementById('pager');
+      const info = document.getElementById('page-info');
+      const ps = PAGE_SIZE; const pages = Math.max(1, Math.ceil(total/ps));
+      if (CURRENT_PAGE > pages) CURRENT_PAGE = pages;
+      if (info) info.textContent = `Trang ${CURRENT_PAGE}/${pages} (${total} dòng)`;
+      pager.style.display = total>0 ? 'flex' : 'none';
+    }
+
+    function renderTable(){
+      const body = document.getElementById('list-body'); if (!body) return;
+      try{ console.log('[Render] FILTERED length =', FILTERED?.length||0, 'group=', SELECTED_GROUP); }catch(_){ }
+      const total = FILTERED.length; updatePager(total);
+      if (!total){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>'; return; }
+      const start = (CURRENT_PAGE-1)*PAGE_SIZE; const end = Math.min(total, start+PAGE_SIZE);
+      const pageItems = FILTERED.slice(start,end);
+      const today = new Date(); const today0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      body.innerHTML = pageItems.map(it=>{
+        const due = parseDateFlexible(it.dueDate);
+        let trClass = '';
+        if (due){
+          const d0 = new Date(due.getFullYear(),due.getMonth(),due.getDate());
+          if (d0.getTime() === today0.getTime()) trClass = 'bg-yellow-50';
+          else if (d0.getTime() < today0.getTime()) trClass = 'bg-red-50';
+        }
+        const statusBadge = ({
+          'Pending1': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Chờ phê duyệt</span>',
+          'Pending2': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Trưởng nhóm Review</span>',
+          'Approved': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">Done</span>',
+          'ChangesRequested': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Đang sửa</span>',
+          'TestBen': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">Test bền</span>',
+          'Rejected': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">Từ chối</span>'
+        })[String(it.status||'Pending1')] || String(it.status||'');
+        const canApprove = String(it.status||'')==='Pending2';
+        const canOther = ['Pending1','Pending2'].includes(String(it.status||''));
+        // Nếu chưa nhập đúng mã bảo mật (nguyenvanlinh|nguyenvanhieu) thì cũng khóa nút Duyệt
+        (function(){})();
+        const _secEl = document.getElementById('secret-code');
+        const _secRaw = String((_secEl||{}).value||'');
+        const _secNorm = _secRaw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').toLowerCase();
+        const hasCode = ['nguyenvanlinh','nguyenvanhieu'].includes(_secNorm);
+        const disApprove = (canApprove && hasCode) ? '' : 'opacity-50 pointer-events-none';
+        const disOther = canOther ? '' : 'opacity-50 pointer-events-none';
+        return `
+          <tr class="${trClass}">
+            <td class="px-3 py-2"><a href="#" class="text-blue-700 underline report-link" data-id="${it.id}">${it.code}</a></td>
+            <td class="px-3 py-2"><a href="#" class="text-blue-700 hover:underline task-detail-link" data-id="${it.id}">${it.title}</a></td>
+            <td class="px-3 py-2"><div>${it.reporter}</div>${it.reporterEmail?`<div class=\"text-xs text-gray-500\">${it.reporterEmail}</div>`:''}</td>
+            <td class="px-3 py-2">${fmtDmy(it.submitDate)}</td>
+            <td class="px-3 py-2">${fmtDmy(it.wishDate)}</td>
+            <td class="px-3 py-2">${fmtDmy(it.dueDate)}</td>
+            <td class="px-3 py-2">${statusBadge}</td>
+            <td class="px-3 py-2">${it.conclusion?String(it.conclusion):''}</td>
+            <td class="px-3 py-2">
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-1 rounded-full text-white font-semibold bg-primary-blue hover:brightness-105 act-approve ${disApprove}" data-id="${it.id}">Duyệt</button>
+                <button class="px-3 py-1 rounded-full text-white font-semibold act-reject ${disOther}" style="background:#ef4444" data-id="${it.id}">Từ chối</button>
+                <button class="px-3 py-1 rounded-full text-white font-semibold act-request ${disOther}" style="background:#f59e0b" data-id="${it.id}">Yêu cầu bổ sung</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    // ===== Actions
+    function findItem(id){ return ALL_ITEMS.find(x=> String(x.id)===String(id)); }
+
+    async function openTaskDetail(id){
+      const modalId='modal-task'; const titleEl=document.getElementById('task-title'); const content=document.getElementById('task-content'); const openNew=document.getElementById('task-open-new');
+      const it=findItem(id); if(titleEl) titleEl.textContent = it? `${it.code} — ${it.title}` : String(id||'');
+      if(content) content.textContent='Đang tải...';
+      let url=''; let detailHtml='';
+
+      const headerMapDetail = {
+        header_id:'ID', field_id:'id', header_code:'Mã', field_code:'code', header_title:'Tên tác vụ', field_title:'title',
+        header_requester:'Người yêu cầu', field_requester:'requesterName', header_requesterDept:'Phòng ban yêu cầu', field_requesterDept:'requesterDept', header_receiver:'Người nhận mẫu', field_receiver:'receiverName',
+        header_form:'Form đánh giá', field_form:'formName', header_manhour:'Công chuẩn', field_manhour:'manhour',
+        header_requestDate:'Ngày yêu cầu', field_requestDate:'requestDate', header_wishDate:'Hạn mong muốn', field_wishDate:'wishDate',
+        header_purpose:'Mục đích đánh giá', field_purpose:'purpose', header_note:'Note', field_note:'note', header_special:'Yêu cầu test đặc biệt', field_special:'specialTest',
+        header_link:'Link', field_link:'link'
+      };
+      const qs=new URLSearchParams({ action:'task_detail', ...headerMapDetail, id:String(id), _ts:Date.now().toString() });
+      async function fetchJson(u){ const r=await fetch(`${u}?${qs.toString()}`, { method:'GET' }); const t=await r.text(); let j=null; try{ j=JSON.parse(t);}catch{} return { ok:r.ok, parsed:j, raw:t, status:r.status }; }
+      function pickObj(j){ if(!j) return null; if(Array.isArray(j) && j.length) return j[0]; if(typeof j==='object') return j; try{ const q=[j]; const seen=new Set(); while(q.length){ const cur=q.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur); if(Object.keys(cur).length) return cur; for(const v of Object.values(cur)){ if(v && typeof v==='object') q.push(v); } } }catch(_){ } return null; }
+      let resp=await fetchJson(WEBHOOK_TEST); if(!resp.ok || /could not be started/i.test(String(resp.parsed?.message||''))) resp=await fetchJson(WEBHOOK_PROD);
+      const obj=pickObj(resp.parsed ?? (resp.raw? JSON.parse(resp.raw): null)) || {};
+      const get=(...keys)=>{ for(const k of keys){ const v=obj[k]||obj[k?.toLowerCase?.()]; if(v!==undefined) return v; } return ''; };
+      url = get('link','url','href')||'';
+      detailHtml = `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+        <div><b>Mã:</b> ${get('code','ma','id')}</div>
+        <div><b>Tên tác vụ:</b> ${get('title','name')}</div>
+        <div><b>Người yêu cầu:</b> ${get('requesterName','requester','nguoiyc')}</div>
+        <div><b>Phòng ban yêu cầu:</b> ${get('requesterDept','dept','phongban')}</div>
+        <div><b>Người nhận mẫu:</b> ${get('receiverName','receiver','nguoinhan')}</div>
+        <div><b>Form đánh giá:</b> ${get('formName','form')}</div>
+        <div><b>Công chuẩn:</b> ${get('manhour','congchuan')}</div>
+        <div><b>Ngày yêu cầu:</b> ${fmtDmy(get('requestDate','ngayyeucau','ngay_yeu_cau'))}</div>
+        <div><b>Hạn mong muốn:</b> ${fmtDmy(get('wishDate','wish'))}</div>
+        <div class="md:col-span-2"><b>Mục đích đánh giá:</b> ${get('purpose','mucdich')}</div>
+        <div class="md:col-span-2"><b>Note:</b> ${get('note')}</div>
+        <div class="md:col-span-2"><b>Yêu cầu test đặc biệt:</b> ${get('specialTest','yeucautest')}</div>
+      </div>`;
+
+      if (openNew){ openNew.href = url||'#'; openNew.style.pointerEvents = url? '':'none'; openNew.style.opacity = url? '1':'0.5'; }
+      if (content) content.innerHTML = detailHtml;
+      openModal(modalId);
+    }
+
+    async function openReportPreview(id){
+      const modalId = 'modal-report'; const frame = document.getElementById('report-frame'); const titleEl = document.getElementById('report-title'); const openNew = document.getElementById('report-open-new');
+      const it = findItem(id); if (titleEl) titleEl.textContent = it ? `${it.code} — ${it.title}` : String(id||'');
+      let url = '';
+      {
+        const it = findItem(id);
+        url = it?.reportUrl || '';
+        if (!url){
+          const headerMapDetail = { header_reportUrl: 'Liên kết báo cáo', field_reportUrl: 'reportUrl' };
+          const qs = new URLSearchParams({ action:'report_detail', ...headerMapDetail, id:String(id), _ts: Date.now().toString() });
+          async function fetchJson(u){ const r=await fetch(`${u}?${qs.toString()}`, { method:'GET' }); const t=await r.text(); let j=null; try{ j=JSON.parse(t);}catch{} return { ok:r.ok, parsed:j, raw:t, status:r.status }; }
+          function pickUrl(j){ if(!j) return ''; const cands=['url','reportUrl','link','file','href']; for(const k of cands){ const v=j[k]||j[k.toLowerCase?.()]||undefined; if (typeof v==='string' && v) return v; } try{ const q=[j]; const seen=new Set(); while(q.length){ const cur=q.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur); for(const [k,v] of Object.entries(cur)){ if (typeof v==='string' && /https?:\/\//i.test(v)) return v; if (v && typeof v==='object') q.push(v); } } }catch(_){} return ''; }
+          let resp = await fetchJson(WEBHOOK_TEST);
+          if (!resp.ok || /could not be started/i.test(String(resp.parsed?.message||''))) resp = await fetchJson(WEBHOOK_PROD);
+          url = pickUrl(resp.parsed ?? (resp.raw? JSON.parse(resp.raw): null)) || '';
+        }
+      }
+      if (openNew) { openNew.href = url || '#'; openNew.style.pointerEvents = url ? '' : 'none'; openNew.style.opacity = url ? '1' : '0.5'; }
+      if (frame) frame.src = url || 'about:blank';
+      openModal(modalId);
+    }
+
+    async function doApprove(){
+      const btn = document.getElementById('approve-do'); if (!CURRENT_ITEM_ID || !btn) return;
+      const prev = btn.textContent; btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi...";
+      const comment = (document.getElementById('approve-comment')?.value||'').trim();
+      const qaCode = generateQaPdCode();
+      try{
+          // Chuyển trạng thái từ Pending1 -> Pending2 cho trưởng phòng xử lý, kèm reviewer
+          function normCode(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').toLowerCase(); }
+          const codeInput = normCode(document.getElementById('secret-code')?.value||'');
+          // Mã bảo mật bắt buộc để thao tác duyệt
+          if (!codeInput){ throw new Error('Vui lòng nhập mã bảo mật trước khi duyệt.'); }
+          // Map mã duyệt -> tên đầy đủ nếu cần
+          const CODE_TO_NAME = { 'nguyenvanlinh':'Nguyễn Văn Linh', 'nguyenvanhieu':'Nguyễn Văn Hiếu', 'linh':'Nguyễn Văn Linh', 'hieu':'Nguyễn Văn Hiếu' };
+          const reviewer = codeInput; // gửi mã duyệt (không dấu) lên server
+          const p = new URLSearchParams({ action:'report_approve', id:String(CURRENT_ITEM_ID), reviewer, comment, next_status:'Pending2', qa_code: qaCode, _ts: Date.now().toString() });
+          // Đính kèm toàn bộ dữ liệu dòng và thời gian phút
+          try{ const it = findItem(CURRENT_ITEM_ID); appendRowParams(p, it); }catch(_){ }
+          async function tryPost(url){ try{ const r=await fetch(url, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString(), cache:'no-store' }); const t=await r.text(); return { ok:r.ok, raw:t }; }catch(err){ return { ok:false, raw:String(err||'') }; } }
+          // Bỏ GET và no-cors để tránh nhầm endpoint; cố gắng POST 2 lần
+          let r = await tryPost(FORM_ACTION_URL);
+          if (!r.ok) r = await tryPost(FORM_ACTION_URL);
+          if (!r.ok) throw new Error(r.raw||'Gửi thất bại');
+        closeModal('modal-approve'); showToast(`Đã duyệt báo cáo. Mã: ${qaCode}`,'success');
+        await reload();
+      }catch(err){ showToast('Lỗi duyệt báo cáo.','error'); }
+      finally{ btn.disabled=false; btn.textContent = prev||'Xác nhận duyệt'; }
+    }
+
+    async function doReject(){
+      const btn = document.getElementById('reject-do'); if (!CURRENT_ITEM_ID || !btn) return;
+      const prev = btn.textContent; btn.disabled=true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi...";
+      const reason = (document.getElementById('reject-reason')?.value||'').trim();
+      if (!reason){ showToast('Vui lòng nhập lý do.','error'); btn.disabled=false; btn.textContent=prev; return; }
+      const qaCode = generateQaPdCode();
+      try{
+          const p = new URLSearchParams({ action:'report_reject', id:String(CURRENT_ITEM_ID), reviewer: (document.getElementById('secret-code')?.value||'').trim(), reason, qa_code: qaCode, _ts: Date.now().toString() });
+          try{ const it = findItem(CURRENT_ITEM_ID); appendRowParams(p, it); }catch(_){ }
+          async function tryPost(url){ try{ const r=await fetch(url, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString(), cache:'no-store' }); const t=await r.text(); return { ok:r.ok, raw:t }; }catch(err){ return { ok:false, raw:String(err||'') }; } }
+          let r = await tryPost(FORM_ACTION_URL);
+          if (!r.ok) r = await tryPost(FORM_ACTION_URL);
+          if (!r.ok) throw new Error(r.raw||'Gửi thất bại');
+        closeModal('modal-reject'); showToast(`Đã từ chối. Mã: ${qaCode}`,'success');
+        await reload();
+      }catch(err){ showToast('Lỗi từ chối.','error'); }
+      finally{ btn.disabled=false; btn.textContent = prev||'Xác nhận từ chối'; }
+    }
+
+    async function doRequest(){
+      const btn = document.getElementById('req-do'); if (!CURRENT_ITEM_ID || !btn) return;
+      const prev = btn.textContent; btn.disabled=true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi...";
+      const comment = (document.getElementById('req-comment')?.value||'').trim();
+      const dueDate = (document.getElementById('req-due')?.value||'').trim();
+      const qaCode = generateQaPdCode();
+      try{
+          const p = new URLSearchParams({ action:'report_request_changes', id:String(CURRENT_ITEM_ID), reviewer: (document.getElementById('secret-code')?.value||'').trim(), comment, dueDate, qa_code: qaCode, _ts: Date.now().toString() });
+          try{ const it = findItem(CURRENT_ITEM_ID); appendRowParams(p, it); }catch(_){ }
+          async function tryPost(url){ try{ const r=await fetch(url, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString(), cache:'no-store' }); const t=await r.text(); return { ok:r.ok, raw:t }; }catch(err){ return { ok:false, raw:String(err||'') }; } }
+          let r = await tryPost(FORM_ACTION_URL);
+          if (!r.ok) r = await tryPost(FORM_ACTION_URL);
+          if (!r.ok) throw new Error(r.raw||'Gửi thất bại');
+        closeModal('modal-req'); showToast(`Đã yêu cầu bổ sung. Mã: ${qaCode}`,'success');
+        await reload();
+      }catch(err){ showToast('Lỗi gửi yêu cầu.','error'); }
+      finally{ btn.disabled=false; btn.textContent = prev||'Gửi yêu cầu'; }
+    }
+
+    // ===== Events & Init
+    (function init(){
+      // Close modal on backdrop click
+      document.querySelectorAll('.modal').forEach(m=>{
+        m.addEventListener('click', (e)=>{ if (e.target === m) closeModal(m.id); });
+      });
+      document.querySelectorAll('[data-close]').forEach(b=>{
+        b.addEventListener('click', (e)=>{ e.preventDefault(); closeModal(b.getAttribute('data-close')||''); });
+      });
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ document.querySelectorAll('.modal.open').forEach(m=> closeModal(m.id)); } });
+
+      // Toggle debug panel & khóa trang theo mã bảo mật
+      document.getElementById('btn-debug')?.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const panel=document.getElementById('debug-panel'); if(!panel) return; panel.style.display = panel.style.display==='none' ? 'block' : 'none';
+      });
+
+      // Lock toàn trang: yêu cầu nhập mã bảo mật trước khi thao tác
+      (function enforceSecretLock(){
+        try{
+          const input = document.getElementById('secret-code');
+          const disableAll = (disabled)=>{
+            document.querySelectorAll('button, input, select, textarea, a').forEach(el=>{
+              if (el===input || el.id==='btn-debug') return; // vẫn cho nhập mã và mở debug
+              if (disabled){ el.setAttribute('disabled','true'); el.classList.add('opacity-60','pointer-events-none'); }
+              else { el.removeAttribute('disabled'); el.classList.remove('opacity-60','pointer-events-none'); }
+            });
+          };
+          const update = ()=>{
+            const raw = String(input?.value||'');
+            const norm = raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').toLowerCase();
+            const has = ['nguyenvanlinh','nguyenvanhieu'].includes(norm);
+            disableAll(!has);
+          };
+          update();
+          input?.addEventListener('input', ()=>{ update(); });
+        }catch(_){ }
+      })();
+
+      // Group filter buttons
+      document.querySelectorAll('.group-btn').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          e.preventDefault();
+          const group = btn.getAttribute('data-group');
+          SELECTED_GROUP = group || 'all';
+          document.querySelectorAll('.group-btn').forEach(b=> b.classList.remove('active'));
+          btn.classList.add('active');
+          // Không còn dropdown người duyệt
+          FILTERED = applyFilters(ALL_ITEMS);
+          CURRENT_PAGE = 1;
+          renderTable();
+        });
+      });
+
+      const body = document.getElementById('list-body');
+      body.addEventListener('click', (e)=>{
+        const link = e.target.closest('.report-link');
+        if (link){ e.preventDefault(); const rid=link.getAttribute('data-id'); if (rid) openReportPreview(rid); return; }
+        const tLink = e.target.closest('.task-detail-link');
+        if (tLink){ e.preventDefault(); const rid=tLink.getAttribute('data-id'); if (rid) openTaskDetail(rid); return; }
+        const btn = e.target.closest('button'); if (!btn) return;
+        const id = btn.getAttribute('data-id'); if (!id) return; CURRENT_ITEM_ID = id;
+        if (btn.classList.contains('act-approve')){ CURRENT_ACTION='approve'; (document.getElementById('approve-comment')||{}).value=''; openModal('modal-approve'); return; }
+        if (btn.classList.contains('act-reject')){ CURRENT_ACTION='reject'; (document.getElementById('reject-reason')||{}).value=''; openModal('modal-reject'); return; }
+        if (btn.classList.contains('act-request')){ CURRENT_ACTION='request'; (document.getElementById('req-comment')||{}).value=''; (document.getElementById('req-due')||{}).value=''; openModal('modal-req'); return; }
+      });
+
+      document.getElementById('approve-do')?.addEventListener('click', (e)=>{ e.preventDefault(); doApprove(); });
+      document.getElementById('reject-do')?.addEventListener('click', (e)=>{ e.preventDefault(); doReject(); });
+      document.getElementById('req-do')?.addEventListener('click', (e)=>{ e.preventDefault(); doRequest(); });
+
+      document.getElementById('btn-search')?.addEventListener('click', async (e)=>{ e.preventDefault(); await reload(); });
+      // Persist mã bảo mật
+      try{
+          const secCode = document.getElementById('secret-code');
+          try{ localStorage.removeItem('tn_secret_code'); }catch(_){ }
+          if (secCode){ secCode.value = ''; secCode.addEventListener('input', ()=>{ localStorage.setItem('tn_secret_code', secCode.value||''); }); }
+          // Thêm ô toggle hiện/ẩn mật khẩu
+          const toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.textContent = 'Hiện';
+          toggle.className = 'px-2 py-0.5 rounded border border-gray-300 bg-white hover:bg-gray-50';
+          const headerRight = document.getElementById('btn-debug')?.parentElement;
+          if (secCode && headerRight){ headerRight.insertBefore(toggle, document.getElementById('btn-debug')); }
+          toggle?.addEventListener('click', ()=>{
+            if (!secCode) return;
+            const cur = secCode.getAttribute('type');
+            secCode.setAttribute('type', cur==='password'?'text':'password');
+            toggle.textContent = cur==='password'?'Ẩn':'Hiện';
+          });
+        }catch(_){ }
+      // Manual JSON loader: cho phép dán JSON vào dbg-raw rồi parse để hiển thị
+      document.getElementById('dbg-load-json')?.addEventListener('click', (e)=>{
+        e.preventDefault();
+        try{
+          const t = document.getElementById('dbg-raw'); if(!t) return;
+          const txt = t.value||''; if(!txt.trim()){ showToast('Không có JSON để nạp.','error'); return; }
+          let j=null; try{ j=JSON.parse(txt); }catch(_){ showToast('JSON không hợp lệ.','error'); return; }
+          const rows = Array.isArray(j)? j: (Array.isArray(j?.data)? j.data: []);
+          if (!rows.length){ showToast('JSON không có mảng dữ liệu.','error'); return; }
+          // chuẩn hóa tối thiểu theo header map
+          ALL_ITEMS = rows.map(x=>({
+            id: x['ID']||x['id']||x['Mã báo cáo']||'',
+            code: x['Mã báo cáo']||x['code']||x['ID']||'',
+            title: x['Tiêu đề']||x['title']||'',
+            reporter: x['Người lập']||x['reporter']||'',
+            reporterEmail: x['Email']||x['reporterEmail']||'',
+            submitDate: x['Ngày nộp']||x['submitDate']||'',
+            wishDate: x['Hạn mong muốn']||x['wishDate']||'',
+            dueDate: x['Hạn đánh giá']||x['dueDate']||'',
+            status: (function(){ const s=String(x['Trạng thái']||x['status']||''); return s.includes('Chờ phê duyệt 1')?'Pending1': s.includes('Chờ phê duyệt 2')?'Pending2': s.includes('Done')?'Approved': s; })(),
+            conclusion: x['Kết luận']||x['conclusion']||'',
+            reportUrl: x['Liên kết báo cáo']||x['reportUrl']||''
+          }));
+          FILTERED = applyFilters(ALL_ITEMS);
+          CURRENT_PAGE=1; renderTable();
+          showToast('Đã nạp JSON thủ công.','success');
+        }catch(_){ showToast('Nạp JSON thất bại.','error'); }
+      });
+      document.getElementById('btn-reset')?.addEventListener('click', async (e)=>{
+        e.preventDefault(); 
+        ['flt-q','flt-status','flt-from','flt-to'].forEach(id=>{ const el=document.getElementById(id); if(!el) return; if (el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; }); 
+        SELECTED_GROUP = 'all';
+        document.querySelectorAll('.group-btn').forEach(b=> b.classList.remove('active'));
+        document.getElementById('btn-group-all')?.classList.add('active');
+        await reload();
+      });
+      document.getElementById('flt-mode')?.addEventListener('change', (e)=>{ applyQuickRangeLocal(e.target.value||'All'); });
+      // Lọc thời gian tại chỗ khi thay đổi ngày From/To
+      document.getElementById('flt-from')?.addEventListener('change', ()=>{ filterTimeInPlace(); });
+      document.getElementById('flt-to')?.addEventListener('change', ()=>{ filterTimeInPlace(); });
+      document.getElementById('page-size')?.addEventListener('change', (e)=>{ PAGE_SIZE = Number(e.target.value||20)||20; CURRENT_PAGE=1; renderTable(); });
+      document.getElementById('prev')?.addEventListener('click', ()=>{ if (CURRENT_PAGE>1){ CURRENT_PAGE--; renderTable(); } });
+      document.getElementById('next')?.addEventListener('click', ()=>{ const pages=Math.max(1,Math.ceil(FILTERED.length/PAGE_SIZE)); if (CURRENT_PAGE<pages){ CURRENT_PAGE++; renderTable(); } });
+
+      // First load: set default date range from first day of current month to last day
+      try{
+        const fromEl=document.getElementById('flt-from');
+        const toEl=document.getElementById('flt-to');
+        const now=new Date();
+        const start=new Date(now.getFullYear(), now.getMonth(), 1);
+        const end=new Date(now.getFullYear(), now.getMonth()+1, 0);
+        const toISO=(x)=>`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+        if(fromEl) fromEl.value = toISO(start);
+        if(toEl) toEl.value = toISO(end);
+        // Default status: Trưởng nhóm Review (Pending2)
+        const stSel=document.getElementById('flt-status'); if (stSel){ stSel.value = 'Pending2'; }
+      }catch(_){ }
+      reload();
+    })();
+
+    async function reload(){
+      const btn = document.getElementById('btn-search'); const prev = btn?btn.textContent:''; if(btn){ btn.disabled=true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang tải..."; }
+      try{
+        const params = {
+          q: document.getElementById('flt-q')?.value||'',
+          status: document.getElementById('flt-status')?.value||'',
+          from: document.getElementById('flt-from')?.value||'',
+          to: document.getElementById('flt-to')?.value||'',
+          mode: document.getElementById('flt-mode')?.value||'All',
+          page: CURRENT_PAGE,
+          pageSize: PAGE_SIZE
+        };
+        const items = await fetchReports(params);
+        ALL_ITEMS = Array.isArray(items) ? items : [];
+        FILTERED = applyFilters(ALL_ITEMS);
+        CURRENT_PAGE = 1;
+        renderTable();
+      }catch(err){
+        showToast('Lỗi tải dữ liệu.','error');
+      }finally{ if(btn){ btn.disabled=false; btn.textContent = prev||'Tra cứu'; } }
+    }
+
+    function applyQuickRange(mode){
+      const fromEl = document.getElementById('flt-from'); const toEl = document.getElementById('flt-to'); if(!fromEl||!toEl) return;
+      const d = new Date();
+      function toISO(x){ const yy=x.getFullYear(); const mm=String(x.getMonth()+1).padStart(2,'0'); const dd=String(x.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; }
+      if (mode==='All'){ fromEl.value=''; toEl.value=''; reload(); return; }
+      if (mode==='Day'){ const s=new Date(d.getFullYear(), d.getMonth(), d.getDate()); const e=new Date(d.getFullYear(), d.getMonth(), d.getDate()); fromEl.value=toISO(s); toEl.value=toISO(e); reload(); return; }
+      if (mode==='Week'){ const day=d.getDay()||7; const s=new Date(d); s.setDate(d.getDate() - (day-1)); const e=new Date(s); e.setDate(s.getDate()+6); fromEl.value=toISO(s); toEl.value=toISO(e); reload(); return; }
+      if (mode==='Month'){ const s=new Date(d.getFullYear(), d.getMonth(), 1); const e=new Date(d.getFullYear(), d.getMonth()+1, 0); fromEl.value=toISO(s); toEl.value=toISO(e); reload(); return; }
+    }
+
+    // Lọc thời gian tại chỗ (không gọi API)
+    function filterTimeInPlace(){
+      try{ FILTERED = applyFilters(ALL_ITEMS); CURRENT_PAGE=1; renderTable(); }catch(_){ }
+    }
+
+    // Thiết lập nhanh khoảng thời gian và lọc tại chỗ
+    function applyQuickRangeLocal(mode){
+      const fromEl = document.getElementById('flt-from'); const toEl = document.getElementById('flt-to'); if(!fromEl||!toEl) return;
+      const d = new Date();
+      function toISO(x){ const yy=x.getFullYear(); const mm=String(x.getMonth()+1).padStart(2,'0'); const dd=String(x.getDate()).padStart(2,'0'); return `${yy}-${mm}-${dd}`; }
+      if (mode==='All'){ fromEl.value=''; toEl.value=''; filterTimeInPlace(); return; }
+      if (mode==='Day'){ const s=new Date(d.getFullYear(), d.getMonth(), d.getDate()); const e=new Date(d.getFullYear(), d.getMonth(), d.getDate()); fromEl.value=toISO(s); toEl.value=toISO(e); filterTimeInPlace(); return; }
+      if (mode==='Week'){ const day=d.getDay()||7; const s=new Date(d); s.setDate(d.getDate() - (day-1)); const e=new Date(s); e.setDate(s.getDate()+6); fromEl.value=toISO(s); toEl.value=toISO(e); filterTimeInPlace(); return; }
+      if (mode==='Month'){ const s=new Date(d.getFullYear(), d.getMonth(), 1); const e=new Date(d.getFullYear(), d.getMonth()+1, 0); fromEl.value=toISO(s); toEl.value=toISO(e); filterTimeInPlace(); return; }
+    }
+  </script>
+</body>
+</html>
+
