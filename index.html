@@ -149,14 +149,13 @@
               <th class="px-3 py-2 min-w-[160px]">Người lập</th>
               <th class="px-3 py-2 min-w-[140px]">Ngày nộp</th>
               <th class="px-3 py-2 min-w-[140px]">Hạn mong muốn</th>
-              <th class="px-3 py-2 min-w-[140px]">Hạn đánh giá</th>
               <th class="px-3 py-2 min-w-[120px]">Trạng thái</th>
               <th class="px-3 py-2 min-w-[160px]">Kết luận</th>
               <th class="px-3 py-2 min-w-[220px]">Hành động</th>
             </tr>
           </thead>
           <tbody id="list-body" class="divide-y divide-gray-100">
-            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">Chưa có dữ liệu</td></tr>
           </tbody>
         </table>
       </div>
@@ -258,10 +257,9 @@
 
   <script>
     // ===== Config
-    const WEBHOOK_TEST = 'https://iatzhxxuk.tino.page/webhook/1df40252-6bff-4392-bb1a-5ae72ee748d1';
-    const WEBHOOK_PROD = WEBHOOK_TEST.replace('/webhook-test/','/webhook/');
-    const REPORTS_QUERY_URL = 'https://iatzhxxuk.tino.page/webhook/7a3b7bb9-0c18-4d62-88fd-f86bddb1b682';
-    const FORM_ACTION_URL = 'https://iatzhxxuk.tino.page/webhook/truongnhompd';
+    const REPORTS_QUERY_URL = 'https://iatzhxxuk.tino.page/webhook/TracuuchoTNvaTP';
+    const APPROVE_URL = 'https://iatzhxxuk.tino.page/webhook/Duyetbaocaochotruongnhom1';
+    const WEBHOOK_DETAIL = 'https://iatzhxxuk.tino.page/webhook/1df40252-6bff-4392-bb1a-5ae72ee748d1';
 
     // ===== Group Definitions
     const NHOM_LINH = [
@@ -490,13 +488,30 @@
       const offset = (pg-1)*ps;
       Object.assign(pageParams, { page:String(pg), page_index:String(pg), pageNumber:String(pg), pageSize:String(ps), limit:String(ps), size:String(ps), per_page:String(ps), offset:String(offset) });
 
-      // Bỏ filter phía server: chỉ gửi action + header mapping, lọc tại client
-      const qs = new URLSearchParams({ action:'reports_query', ...headerMapReports, _ts: Date.now().toString() });
+      // Gửi kèm Trạng thái khi get dữ liệu
+      const statusParamsToSend = {};
+      if (statusRaw && statusRaw !== 'All') {
+        const labelVi = statusToViLabel(statusRaw);
+        Object.assign(statusParamsToSend, {
+          status: labelVi,
+          state: labelVi,
+          trangthai: labelVi,
+          status_vi: labelVi,
+          status_code: statusRaw
+        });
+      } else if (statusRaw === 'All') {
+        Object.assign(statusParamsToSend, {
+          status: 'All',
+          status_code: 'All'
+        });
+      }
+
+      const qs = new URLSearchParams({ action:'reports_query', ...headerMapReports, ...statusParamsToSend, _ts: Date.now().toString() });
       function setDebug(url, raw, first){ try{ const u=document.getElementById('dbg-url'); if(u) u.textContent = url; const t=document.getElementById('dbg-raw'); if(t) t.value = raw||''; const f=document.getElementById('dbg-row'); if(f) f.value = first? JSON.stringify(first,null,2):''; }catch(_){ } }
       async function fetchJson(url){ const full=`${url}?${qs.toString()}`; const r = await fetch(full, { method:'GET', cache:'no-store' }); const txt = await r.text(); let parsed=null; try{ parsed=JSON.parse(txt);}catch{} setDebug(full, (txt && txt.length? txt: '[empty]').slice(0,4000), null); return { ok:r.ok, parsed, raw:txt, status:r.status, fullUrl:full }; }
       async function postJson(url, params){ const body = new URLSearchParams(params||{}); const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body: body.toString(), cache:'no-store' }); const txt = await r.text(); let parsed=null; try{ parsed=JSON.parse(txt);}catch{} setDebug(url+' [POST]', (txt && txt.length? txt: '[empty]').slice(0,4000), null); return { ok:r.ok, parsed, raw:txt, status:r.status, fullUrl:url+' [POST]' }; }
       async function fetchJsonMinimal(url){
-        const qs2 = new URLSearchParams({ action:'reports_query', ...headerMapReports, _ts: Date.now().toString() });
+        const qs2 = new URLSearchParams({ action:'reports_query', ...headerMapReports, ...statusParamsToSend, _ts: Date.now().toString() });
         const full=`${url}?${qs2.toString()}`; const r=await fetch(full,{method:'GET'}); const txt=await r.text(); let parsed=null; try{ parsed=JSON.parse(txt);}catch{} setDebug(full, txt.slice(0,4000), null); return { ok:r.ok, parsed, raw:txt, status:r.status, fullUrl:full };
       }
       function safeParse(txt){ try{ return JSON.parse(txt); }catch(_){ return null; } }
@@ -525,28 +540,10 @@
       }
       let resp = await fetchJson(REPORTS_QUERY_URL);
       try{ console.log('[Reports] URL:', resp.fullUrl, 'status:', resp.status); }catch(_){ }
-      if (!resp.ok || /could not be started/i.test(String(resp.parsed?.message||''))){
-        resp = await fetchJson(REPORTS_QUERY_URL.replace('/webhook-test/','/webhook/'));
-      }
-      // Also try the inverse variant if still not OK or body empty
-      if ((!resp.ok || !resp.raw || !String(resp.raw).trim()) && REPORTS_QUERY_URL.includes('/webhook/')){
-        const alt = REPORTS_QUERY_URL.replace('/webhook/','/webhook-test/');
-        if (alt !== REPORTS_QUERY_URL){
-          try{ console.warn('[Reports] Retry with webhook-test variant'); }catch(_){ }
-          resp = await fetchJson(alt);
-        }
-      }
       // Fallback 1: nếu body rỗng nhưng status OK, thử gọi tối giản (bỏ bộ lọc) để xác thực
       if (resp.ok && (!resp.raw || !String(resp.raw).trim())){
         try{ console.warn('[Reports] Empty body, retry with minimal params'); }catch(_){ }
         resp = await fetchJsonMinimal(REPORTS_QUERY_URL);
-        if ((!resp.ok || !resp.raw || !String(resp.raw).trim()) && REPORTS_QUERY_URL.includes('/webhook/')){
-          const alt = REPORTS_QUERY_URL.replace('/webhook/','/webhook-test/');
-          if (alt !== REPORTS_QUERY_URL){
-            try{ console.warn('[Reports] Minimal retry with webhook-test variant'); }catch(_){ }
-            resp = await fetchJsonMinimal(alt);
-          }
-        }
       }
       if (!resp.ok) return [];
       // Fallback 2: POST với cùng tham số nếu GET trả rỗng
@@ -558,7 +555,7 @@
       }
       // Nếu POST vẫn rỗng, thử POST tối giản
       if (resp.ok && (!resp.raw || !String(resp.raw).trim())){
-        const minimal = { action:'reports_query', ...headerMapReports, _ts: Date.now().toString() };
+        const minimal = { action:'reports_query', ...headerMapReports, ...statusParamsToSend, _ts: Date.now().toString() };
         resp = await postJson(REPORTS_QUERY_URL, minimal);
       }
       const baseJson = resp.parsed ?? safeParse(resp.raw);
@@ -572,10 +569,12 @@
         if ([
           'pending1','pending 1','cho phe duyet 1','chờ phê duyệt 1','cho_phe_duyet_1','cho duyet 1','chopheduyet1','cpd1'
         ].includes(v)) return 'Pending1';
-        // Pending 2
+        // Pending 2 - xử lý cả "Trưởng" và "Trường" (lỗi chính tả)
         if ([
           'pending2','pending 2','cho phe duyet 2','chờ phê duyệt 2','cho_phe_duyet_2','cho duyet 2','chopheduyet2','cpd2'
-        ].includes(v) || v2==='truongnhomreview' || v.includes('trưởng nhóm review') || v.includes('truong nhom review')) return 'Pending2';
+        ].includes(v) || v2==='truongnhomreview' || 
+           v.includes('trưởng nhóm review') || v.includes('trường nhóm review') || 
+           v.includes('truong nhom review')) return 'Pending2';
         // Generic pending -> map về Pending1 cho Trưởng nhóm
         if (['pending','cho phe duyet','chờ phê duyệt','cho_duyet','cho'].includes(v)) return 'Pending1';
         if (['approved','done','hoan thanh','hoàn thành','da duyet','đã duyệt'].includes(v)) return 'Approved';
@@ -598,17 +597,17 @@
       }
       const normalizedRows = rows.map(x=>{
         const lx = lowerKeyMap(x||{});
-        const id = getFrom(lx,'id','ID','reportId','report_id');
-        const code = getFrom(lx,'code','mã báo cáo','ma','taskcode','reportCode');
-        const title = getFrom(lx,'title','tiêu đề','name','reportTitle','tên');
-        const reporter = getFrom(lx,'reporter','người lập','employee','author','nhân viên');
+        const id = getFrom(lx,'id','ID','Id','reportId','report_id');
+        const code = getFrom(lx,'code','mã báo cáo','ma','taskcode','reportCode','mã tác vụ','Mã tác vụ');
+        const title = getFrom(lx,'title','tiêu đề','name','reportTitle','tên','task name','Task Name');
+        const reporter = getFrom(lx,'reporter','người lập','employee','author','nhân viên','assignee','Assignee');
         const reporterEmail = getFrom(lx,'reporterEmail','email');
-        const submitDate = getFrom(lx,'submitDate','ngày nộp','date','ngaynop','ngaynộp','ngaynộp');
-        const wishDate = getFrom(lx,'wishDate','hạn mong muốn','hanmongmuon','wish');
-        const dueDate = getFrom(lx,'dueDate','deadline','hạn đánh giá');
-        const statusRaw = getFrom(lx,'status','trạng thái','trangthai');
-        const conclusion = getFrom(lx,'conclusion','kết luận','ketluan');
-        const reportUrl = getFrom(lx,'reportUrl','liên kết báo cáo','url','link','href');
+        const submitDate = getFrom(lx,'submitDate','ngày nộp','date','ngaynop','ngày cập nhật gần nhất','Ngày cập nhật gần nhất');
+        const wishDate = getFrom(lx,'wishDate','hạn mong muốn','hanmongmuon','wish','Hạn mong muốn');
+        const dueDate = getFrom(lx,'dueDate','deadline','hạn đánh giá','ngày hoàn thành thực tế','Ngày hoàn thành thực tế');
+        const statusRaw = getFrom(lx,'status','trạng thái','trangthai','kết quả','Kết quả');
+        const conclusion = getFrom(lx,'conclusion','kết luận','ketluan','Kết luận');
+        const reportUrl = getFrom(lx,'reportUrl','liên kết báo cáo','url','link','href','link bcpdf','Link BCpdf');
         // Map chuyên biệt: nếu status là "Chờ phê duyệt 1/2" thì normalize về Pending1/Pending2
         return {
           id: id || code || '',
@@ -621,8 +620,12 @@
           dueDate: dueDate || '',
           status: (function(){
             const s = String(statusRaw||'').trim().toLowerCase();
+            const sNorm = s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'');
             if (s.includes('chờ phê duyệt 1') || s.includes('cho phe duyet 1')) return 'Pending1';
-            if (s.includes('chờ phê duyệt 2') || s.includes('cho phe duyet 2')) return 'Pending2';
+            // Xử lý cả "Trưởng" và "Trường" (lỗi chính tả) sau khi normalize
+            if (s.includes('chờ phê duyệt 2') || s.includes('cho phe duyet 2') || 
+                s.includes('trưởng nhóm review') || s.includes('trường nhóm review') || 
+                s.includes('truong nhom review') || sNorm === 'truongnhomreview') return 'Pending2';
             return normalizeStatus(statusRaw || 'Pending1');
           })(),
           conclusion: conclusion || '',
@@ -701,18 +704,11 @@
       const body = document.getElementById('list-body'); if (!body) return;
       try{ console.log('[Render] FILTERED length =', FILTERED?.length||0, 'group=', SELECTED_GROUP); }catch(_){ }
       const total = FILTERED.length; updatePager(total);
-      if (!total){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>'; return; }
+      if (!total){ body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="8">Chưa có dữ liệu</td></tr>'; return; }
       const start = (CURRENT_PAGE-1)*PAGE_SIZE; const end = Math.min(total, start+PAGE_SIZE);
       const pageItems = FILTERED.slice(start,end);
-      const today = new Date(); const today0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       body.innerHTML = pageItems.map(it=>{
-        const due = parseDateFlexible(it.dueDate);
         let trClass = '';
-        if (due){
-          const d0 = new Date(due.getFullYear(),due.getMonth(),due.getDate());
-          if (d0.getTime() === today0.getTime()) trClass = 'bg-yellow-50';
-          else if (d0.getTime() < today0.getTime()) trClass = 'bg-red-50';
-        }
         const statusBadge = ({
           'Pending1': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Chờ phê duyệt</span>',
           'Pending2': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Trưởng nhóm Review</span>',
@@ -738,7 +734,6 @@
             <td class="px-3 py-2"><div>${it.reporter}</div>${it.reporterEmail?`<div class=\"text-xs text-gray-500\">${it.reporterEmail}</div>`:''}</td>
             <td class="px-3 py-2">${fmtDmy(it.submitDate)}</td>
             <td class="px-3 py-2">${fmtDmy(it.wishDate)}</td>
-            <td class="px-3 py-2">${fmtDmy(it.dueDate)}</td>
             <td class="px-3 py-2">${statusBadge}</td>
             <td class="px-3 py-2">${it.conclusion?String(it.conclusion):''}</td>
             <td class="px-3 py-2">
@@ -772,7 +767,7 @@
       const qs=new URLSearchParams({ action:'task_detail', ...headerMapDetail, id:String(id), _ts:Date.now().toString() });
       async function fetchJson(u){ const r=await fetch(`${u}?${qs.toString()}`, { method:'GET' }); const t=await r.text(); let j=null; try{ j=JSON.parse(t);}catch{} return { ok:r.ok, parsed:j, raw:t, status:r.status }; }
       function pickObj(j){ if(!j) return null; if(Array.isArray(j) && j.length) return j[0]; if(typeof j==='object') return j; try{ const q=[j]; const seen=new Set(); while(q.length){ const cur=q.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur); if(Object.keys(cur).length) return cur; for(const v of Object.values(cur)){ if(v && typeof v==='object') q.push(v); } } }catch(_){ } return null; }
-      let resp=await fetchJson(WEBHOOK_TEST); if(!resp.ok || /could not be started/i.test(String(resp.parsed?.message||''))) resp=await fetchJson(WEBHOOK_PROD);
+      let resp=await fetchJson(WEBHOOK_DETAIL);
       const obj=pickObj(resp.parsed ?? (resp.raw? JSON.parse(resp.raw): null)) || {};
       const get=(...keys)=>{ for(const k of keys){ const v=obj[k]||obj[k?.toLowerCase?.()]; if(v!==undefined) return v; } return ''; };
       url = get('link','url','href')||'';
@@ -808,8 +803,7 @@
           const qs = new URLSearchParams({ action:'report_detail', ...headerMapDetail, id:String(id), _ts: Date.now().toString() });
           async function fetchJson(u){ const r=await fetch(`${u}?${qs.toString()}`, { method:'GET' }); const t=await r.text(); let j=null; try{ j=JSON.parse(t);}catch{} return { ok:r.ok, parsed:j, raw:t, status:r.status }; }
           function pickUrl(j){ if(!j) return ''; const cands=['url','reportUrl','link','file','href']; for(const k of cands){ const v=j[k]||j[k.toLowerCase?.()]||undefined; if (typeof v==='string' && v) return v; } try{ const q=[j]; const seen=new Set(); while(q.length){ const cur=q.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue; seen.add(cur); for(const [k,v] of Object.entries(cur)){ if (typeof v==='string' && /https?:\/\//i.test(v)) return v; if (v && typeof v==='object') q.push(v); } } }catch(_){} return ''; }
-          let resp = await fetchJson(WEBHOOK_TEST);
-          if (!resp.ok || /could not be started/i.test(String(resp.parsed?.message||''))) resp = await fetchJson(WEBHOOK_PROD);
+          let resp = await fetchJson(WEBHOOK_DETAIL);
           url = pickUrl(resp.parsed ?? (resp.raw? JSON.parse(resp.raw): null)) || '';
         }
       }
@@ -837,8 +831,8 @@
           try{ const it = findItem(CURRENT_ITEM_ID); appendRowParams(p, it); }catch(_){ }
           async function tryPost(url){ try{ const r=await fetch(url, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString(), cache:'no-store' }); const t=await r.text(); return { ok:r.ok, raw:t }; }catch(err){ return { ok:false, raw:String(err||'') }; } }
           // Bỏ GET và no-cors để tránh nhầm endpoint; cố gắng POST 2 lần
-          let r = await tryPost(FORM_ACTION_URL);
-          if (!r.ok) r = await tryPost(FORM_ACTION_URL);
+          let r = await tryPost(APPROVE_URL);
+          if (!r.ok) r = await tryPost(APPROVE_URL);
           if (!r.ok) throw new Error(r.raw||'Gửi thất bại');
         closeModal('modal-approve'); showToast(`Đã duyệt báo cáo. Mã: ${qaCode}`,'success');
         await reload();
@@ -856,8 +850,8 @@
           const p = new URLSearchParams({ action:'report_reject', id:String(CURRENT_ITEM_ID), reviewer: (document.getElementById('secret-code')?.value||'').trim(), reason, qa_code: qaCode, _ts: Date.now().toString() });
           try{ const it = findItem(CURRENT_ITEM_ID); appendRowParams(p, it); }catch(_){ }
           async function tryPost(url){ try{ const r=await fetch(url, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString(), cache:'no-store' }); const t=await r.text(); return { ok:r.ok, raw:t }; }catch(err){ return { ok:false, raw:String(err||'') }; } }
-          let r = await tryPost(FORM_ACTION_URL);
-          if (!r.ok) r = await tryPost(FORM_ACTION_URL);
+          let r = await tryPost(APPROVE_URL);
+          if (!r.ok) r = await tryPost(APPROVE_URL);
           if (!r.ok) throw new Error(r.raw||'Gửi thất bại');
         closeModal('modal-reject'); showToast(`Đã từ chối. Mã: ${qaCode}`,'success');
         await reload();
@@ -875,8 +869,8 @@
           const p = new URLSearchParams({ action:'report_request_changes', id:String(CURRENT_ITEM_ID), reviewer: (document.getElementById('secret-code')?.value||'').trim(), comment, dueDate, qa_code: qaCode, _ts: Date.now().toString() });
           try{ const it = findItem(CURRENT_ITEM_ID); appendRowParams(p, it); }catch(_){ }
           async function tryPost(url){ try{ const r=await fetch(url, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString(), cache:'no-store' }); const t=await r.text(); return { ok:r.ok, raw:t }; }catch(err){ return { ok:false, raw:String(err||'') }; } }
-          let r = await tryPost(FORM_ACTION_URL);
-          if (!r.ok) r = await tryPost(FORM_ACTION_URL);
+          let r = await tryPost(APPROVE_URL);
+          if (!r.ok) r = await tryPost(APPROVE_URL);
           if (!r.ok) throw new Error(r.raw||'Gửi thất bại');
         closeModal('modal-req'); showToast(`Đã yêu cầu bổ sung. Mã: ${qaCode}`,'success');
         await reload();
@@ -984,20 +978,29 @@
           let j=null; try{ j=JSON.parse(txt); }catch(_){ showToast('JSON không hợp lệ.','error'); return; }
           const rows = Array.isArray(j)? j: (Array.isArray(j?.data)? j.data: []);
           if (!rows.length){ showToast('JSON không có mảng dữ liệu.','error'); return; }
-          // chuẩn hóa tối thiểu theo header map
-          ALL_ITEMS = rows.map(x=>({
-            id: x['ID']||x['id']||x['Mã báo cáo']||'',
-            code: x['Mã báo cáo']||x['code']||x['ID']||'',
-            title: x['Tiêu đề']||x['title']||'',
-            reporter: x['Người lập']||x['reporter']||'',
-            reporterEmail: x['Email']||x['reporterEmail']||'',
-            submitDate: x['Ngày nộp']||x['submitDate']||'',
-            wishDate: x['Hạn mong muốn']||x['wishDate']||'',
-            dueDate: x['Hạn đánh giá']||x['dueDate']||'',
-            status: (function(){ const s=String(x['Trạng thái']||x['status']||''); return s.includes('Chờ phê duyệt 1')?'Pending1': s.includes('Chờ phê duyệt 2')?'Pending2': s.includes('Done')?'Approved': s; })(),
-            conclusion: x['Kết luận']||x['conclusion']||'',
-            reportUrl: x['Liên kết báo cáo']||x['reportUrl']||''
-          }));
+          // chuẩn hóa tối thiểu theo header map - hỗ trợ cả key tiếng Việt và tiếng Anh
+          ALL_ITEMS = rows.map(x=>{
+            const statusRaw = String(x['Kết quả']||x['Trạng thái']||x['status']||'');
+            const sNorm = statusRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'');
+            let status = 'Pending1';
+            if (statusRaw.includes('Chờ phê duyệt 1') || statusRaw.toLowerCase().includes('cho phe duyet 1')) status = 'Pending1';
+            else if (statusRaw.includes('Chờ phê duyệt 2') || statusRaw.includes('Trưởng nhóm Review') || 
+                     statusRaw.includes('Trường nhóm Review') || sNorm === 'truongnhomreview') status = 'Pending2';
+            else if (statusRaw.includes('Done') || statusRaw.includes('Đã duyệt')) status = 'Approved';
+            return {
+              id: String(x['Id']||x['ID']||x['id']||x['Mã tác vụ']||x['Mã báo cáo']||''),
+              code: String(x['Mã tác vụ']||x['Mã báo cáo']||x['code']||x['Id']||x['ID']||''),
+              title: String(x['Task Name']||x['Tiêu đề']||x['title']||''),
+              reporter: String(x['Assignee']||x['Người lập']||x['reporter']||''),
+              reporterEmail: String(x['Email']||x['reporterEmail']||''),
+              submitDate: String(x['Ngày cập nhật gần nhất']||x['Ngày nộp']||x['submitDate']||''),
+              wishDate: String(x['Hạn mong muốn']||x['wishDate']||''),
+              dueDate: String(x['Ngày hoàn thành thực tế']||x['Hạn đánh giá']||x['dueDate']||''),
+              status: status,
+              conclusion: String(x['Kết luận']||x['conclusion']||''),
+              reportUrl: String(x['Link BCpdf']||x['Liên kết báo cáo']||x['reportUrl']||'')
+            };
+          });
           FILTERED = applyFilters(ALL_ITEMS);
           CURRENT_PAGE=1; renderTable();
           showToast('Đã nạp JSON thủ công.','success');
