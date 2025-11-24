@@ -56,7 +56,8 @@
 
   <main class="w-full p-4 md:p-6">
     <div class="mb-4 flex items-center gap-2 flex-wrap">
-      <button class="px-3 py-1 rounded-full border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50 tab-btn" data-target="form-approve">Duyệt báo cáo</button>
+      <button class="px-3 py-1 rounded-full border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50 tab-btn active" data-target="form-approve">Duyệt báo cáo</button>
+      <button class="px-3 py-1 rounded-full border border-blue-200 bg-blue-50/30 text-primary-blue hover:bg-blue-50 tab-btn" data-target="form-pdform">Phê duyệt form</button>
     </div>
 
     <section id="form-approve" class="bg-white p-4 md:p-6 rounded-xl shadow-md">
@@ -176,6 +177,61 @@
         </div>
       </div>
     </section>
+
+    <!-- Section: Phê duyệt form -->
+    <section id="form-pdform" class="bg-white p-4 md:p-6 rounded-xl shadow-md" style="display:none">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-blue-800">Danh sách form chờ phê duyệt</h2>
+        <button id="pdform-btn-search" class="submit-btn px-4 py-2 text-white font-semibold">Tải lại</button>
+      </div>
+
+      <div class="mb-3 flex items-center gap-3">
+        <label class="text-sm text-gray-700 font-medium">Lọc theo kết quả:</label>
+        <select id="pdform-flt-status" class="border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+          <option value="All">Tất cả</option>
+          <option value="Leader review">Leader review</option>
+          <option value="Chờ TP phê duyệt">Chờ TP phê duyệt</option>
+          <option value="Được duyệt">Được duyệt</option>
+        </select>
+      </div>
+
+      <div class="mt-2 overflow-auto border border-gray-200 rounded-lg">
+        <table class="min-w-[1400px] w-full text-sm table-zebra table-vdiv">
+              <thead class="bg-gradient-to-r from-blue-100 to-blue-50 sticky top-0">
+            <tr class="text-left text-gray-700">
+              <th class="px-3 py-2 min-w-[220px]">Hành động</th>
+              <th class="px-3 py-2 min-w-[200px]">Tên tác vụ</th>
+              <th class="px-3 py-2 min-w-[120px]">Mã</th>
+              <th class="px-3 py-2 min-w-[180px]">Mã tác vụ</th>
+              <th class="px-3 py-2 min-w-[160px]">PIC</th>
+              <th class="px-3 py-2 min-w-[160px]">Kết quả</th>
+              <th class="px-3 py-2 min-w-[160px]">Thời gian gửi</th>
+              <th class="px-3 py-2 min-w-[180px]">Form báo cáo</th>
+              <th class="px-3 py-2 min-w-[120px]">Chi tiết</th>
+            </tr>
+          </thead>
+          <tbody id="pdform-list-body" class="divide-y divide-gray-100">
+            <tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="pdform-pager" class="mt-2 flex items-center justify-between" style="display:none">
+        <div class="text-sm text-gray-600">
+          <span id="pdform-page-info">Trang 1/1 (0 dòng)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">Hiển thị</label>
+          <select id="pdform-page-size" class="border border-blue-300 rounded-lg bg-slate-100 p-1 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+          </select>
+          <button id="pdform-prev" class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Trước</button>
+          <button id="pdform-next" class="px-3 py-1 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Sau</button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Modal Approve -->
@@ -253,6 +309,46 @@
     </div>
   </div>
 
+  <!-- Modal Form Detail -->
+  <div id="modal-form-detail" class="modal" aria-hidden="true">
+    <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg p-0 overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between px-4 py-3 border-b flex-shrink-0">
+        <div class="text-sm text-gray-700">Chi tiết form: <span id="form-detail-title" class="font-semibold"></span></div>
+        <button data-close="modal-form-detail" class="px-3 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Đóng</button>
+      </div>
+      <div class="p-4 text-sm overflow-y-auto flex-1" id="form-detail-content">
+        <div class="spinner mx-auto mb-2"></div>
+        <p class="text-gray-600 text-center">Đang tải...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Form Approve -->
+  <div id="modal-pdform-approve" class="modal" aria-hidden="true">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-4">
+      <h3 class="text-lg font-semibold text-blue-800 mb-1">Duyệt form</h3>
+      <p class="text-sm text-gray-600 mb-3">Nhập bình luận (không bắt buộc)</p>
+      <textarea id="pdform-approve-comment" rows="4" class="w-full border border-blue-300 rounded-lg bg-slate-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white" placeholder="Ghi chú cho người lập..."></textarea>
+      <div class="mt-3 flex items-center justify-end gap-2">
+        <button data-close="modal-pdform-approve" class="px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Hủy</button>
+        <button id="pdform-approve-do" class="submit-btn px-4 py-2 text-white font-semibold">Xác nhận duyệt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Form Reject -->
+  <div id="modal-pdform-reject" class="modal" aria-hidden="true">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-4">
+      <h3 class="text-lg font-semibold text-red-700 mb-1">Từ chối form</h3>
+      <p class="text-sm text-gray-600 mb-3">Vui lòng nêu lý do</p>
+      <textarea id="pdform-reject-reason" rows="4" class="w-full border border-red-300 rounded-lg bg-red-50 p-2 focus:outline-none focus:ring-2 focus:ring-red-200 focus:bg-white" placeholder="Lý do từ chối..."></textarea>
+      <div class="mt-3 flex items-center justify-end gap-2">
+        <button data-close="modal-pdform-reject" class="px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50">Hủy</button>
+        <button id="pdform-reject-do" class="px-4 py-2 rounded-full text-white font-semibold" style="background:#ef4444">Xác nhận từ chối</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
@@ -260,6 +356,10 @@
     const REPORTS_QUERY_URL = 'https://iatzhxxuk.tino.page/webhook/TracuuchoTNvaTP';
     const APPROVE_URL = 'https://iatzhxxuk.tino.page/webhook/Duyetbaocaochotruongnhom1';
     const WEBHOOK_DETAIL = 'https://iatzhxxuk.tino.page/webhook/1df40252-6bff-4392-bb1a-5ae72ee748d1';
+
+    // ===== Phê duyệt Form Endpoints
+    const PDFORM_QUERY_URL = 'https://iatzhxxuk.tino.page/webhook/PheduyenformTP'; // GET: lấy danh sách form chờ phê duyệt
+    const PDFORM_ACTION_URL = 'https://iatzhxxuk.tino.page/webhook/DuyetformTN'; // POST: action=pdform_approve|pdform_reject
 
     // ===== Group Definitions
     const NHOM_LINH = [
@@ -291,6 +391,13 @@
     let CURRENT_ITEM_ID = null;
     let CURRENT_ACTION = null;
     let SELECTED_GROUP = 'all'; // 'all' | 'linh' | 'hieu'
+
+    // Phê duyệt Form state
+    let PDFORM_ITEMS = [];
+    let PDFORM_FILTERED = [];
+    let PDFORM_PAGE = 1;
+    let PDFORM_PAGE_SIZE = 20;
+    let CURRENT_PDFORM_ID = null;
 
     // ===== Helpers
     function normalizeVietnamese(str){
@@ -747,6 +854,15 @@
       }).join('');
     }
 
+    // ===== Helpers
+    function escapeHtml(input){
+      try{
+        const s = String(input||'');
+        const map = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+        return s.replace(/[&<>"']/g, (ch)=> map[ch] || ch);
+      }catch(_){ return ''; }
+    }
+
     // ===== Actions
     function findItem(id){ return ALL_ITEMS.find(x=> String(x.id)===String(id)); }
 
@@ -878,6 +994,663 @@
       finally{ btn.disabled=false; btn.textContent = prev||'Gửi yêu cầu'; }
     }
 
+    // ===== Phê duyệt Form Functions
+    async function fetchPdFormData(){
+      try{
+        async function fetchJson(url){
+          const r = await fetch(url, { method:'GET' });
+          const t = await r.text();
+          let parsed = null;
+          try{ parsed = JSON.parse(t); }catch(_){}
+          return { ok:r.ok, parsed, raw:t, status:r.status };
+        }
+        function safeParse(txt){ try{ return JSON.parse(txt); }catch(_){ return null; } }
+        function collectRowsDeep(json){
+          if(!json) return [];
+          if(Array.isArray(json)) return json;
+          const out=[]; const seen=new Set(); const q=[json];
+          try{
+            while(q.length){
+              const cur=q.shift(); if(!cur||typeof cur!=='object'||seen.has(cur)) continue;
+              seen.add(cur);
+              for(const v of Object.values(cur)){
+                if(Array.isArray(v)){
+                  if(v.length && typeof v[0]==='object') out.push(...v);
+                  v.forEach(x=>{ if(x && typeof x==='object') q.push(x); });
+                  continue;
+                }
+                if(v && typeof v==='object') q.push(v);
+              }
+            }
+          }catch(_){}
+          return out.length ? out : (typeof json==='object' ? [json] : []);
+        }
+        const qs = new URLSearchParams({ _ts: Date.now().toString() });
+        let resp = await fetchJson(`${PDFORM_QUERY_URL}?${qs.toString()}`);
+        if (!resp.ok || /could not be started/i.test(String(resp.parsed?.message||''))) resp = await fetchJson(`${PDFORM_QUERY_URL.replace('/webhook-test/','/webhook/')}?${qs.toString()}`);
+        if (!resp.ok) return [];
+        const baseJson = resp.parsed ?? safeParse(resp.raw);
+        const rows = collectRowsDeep(baseJson);
+        function lowerKeyMap(obj){ const map={}; try{ Object.keys(obj||{}).forEach(k=>{ map[String(k).toLowerCase()] = obj[k]; }); }catch(_){ } return map; }
+        function getFrom(lowerObj, ...keys){ for(const k of keys){ const kk=String(k||'').toLowerCase(); if (lowerObj.hasOwnProperty(kk)) return lowerObj[kk]; } return ''; }
+        return rows.map(x=>{
+          const lx = lowerKeyMap(x||{});
+          // Lấy PIC từ taskData hoặc rawData
+          let pic = '';
+          const taskDataStr = getFrom(lx,'taskdata','task_data','Taskdata') || '';
+          if (taskDataStr) {
+            try {
+              const taskDataObj = JSON.parse(taskDataStr);
+              // Thử lấy từ cấu trúc cũ (TaskPIC) hoặc mới (pic)
+              pic = taskDataObj.TaskPIC || taskDataObj.pic || taskDataObj.PIC || '';
+              // Nếu có TaskForm4Data nested, thử lấy từ đó
+              if (!pic && taskDataObj.TaskForm4Data) {
+                try {
+                  const form4Data = JSON.parse(taskDataObj.TaskForm4Data);
+                  pic = form4Data.pic || form4Data.PIC || '';
+                } catch(e) {}
+              }
+            } catch(e) {}
+          }
+          // Nếu không có trong taskData, thử lấy từ rawData trực tiếp
+          if (!pic) {
+            pic = getFrom(lx,'pic','PIC','người gửi','nguoi gui','assignee','Assignee') || '';
+          }
+          return {
+            id: getFrom(lx,'id','ID','Id') || '',
+            taskName: getFrom(lx,'task name','taskname','task_name','Task Name') || '',
+            ma: getFrom(lx,'mã','ma','code','Mã') || '',
+            maTacVu: getFrom(lx,'mã tác vụ','ma_tac_vu','taskcode','Mã tác vụ') || '',
+            pic: pic,
+            ketQua: getFrom(lx,'trạng thái','trangthai','status','kết quả','ketqua','Kết quả','Trạng thái') || '',
+            createdAt: getFrom(lx,'createdat','created_at','ngay_tao','CreatedAt') || '',
+            subtaskSendTime: getFrom(lx,'subtasksendtime','subtask_send_time','Subtasksendtime') || '',
+            taskData: taskDataStr,
+            subtaskNote: getFrom(lx,'subtasknote','subtask_note','note','Subtasknote') || '',
+            subtaskFormLink: getFrom(lx,'subtaskformlink','subtask_form_link','Subtaskformlink','SubtaskFormLink','formlink','FormLink','form_link','checklistlink','ChecklistLink','checklist_link') || '',
+            fileAttachment: getFrom(lx,'file attachment','file_attachment','attachment','File attachment') || '',
+            rawData: x || {}
+          };
+        }).filter(r => r.id || r.ma || r.taskName);
+      }catch(err){
+        console.error('Error fetching pdform data:', err);
+        return [];
+      }
+    }
+    function applyPdFormFilters(all){
+      const statusFilter = (document.getElementById('pdform-flt-status')?.value || 'All');
+      let filtered = all.filter(it=>{
+        if (statusFilter === 'All') return true;
+        const ketQua = String(it.ketQua||'').trim();
+        // Map các giá trị có thể có
+        if (statusFilter === 'Leader review') {
+          return ketQua === 'Leader review' || ketQua === 'leader review';
+        }
+        if (statusFilter === 'Chờ TP phê duyệt') {
+          return ketQua === 'Chờ TP phê duyệt' || ketQua === 'Chờ phê duyệt form' || ketQua === 'chờ tp phê duyệt';
+        }
+        if (statusFilter === 'Được duyệt') {
+          return ketQua === 'Được duyệt' || ketQua === 'Đã phê duyệt' || ketQua === 'được duyệt';
+        }
+        return ketQua === statusFilter;
+      });
+      // Sắp xếp theo thời gian gửi từ gần đến xa (mới nhất trước)
+      filtered.sort((a, b) => {
+        const parseTime = (timeStr) => {
+          if (!timeStr) return 0;
+          try {
+            const match = String(timeStr).trim().match(/(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}):(\d{2})/);
+            if (match) {
+              const [, yyyy, mm, dd, hh, min] = match;
+              return new Date(yyyy, parseInt(mm)-1, dd, hh, min).getTime();
+            }
+            // Thử parse trực tiếp
+            const d = new Date(timeStr);
+            return isNaN(d.getTime()) ? 0 : d.getTime();
+          } catch(e) {
+            return 0;
+          }
+        };
+        const timeA = parseTime(a.subtaskSendTime);
+        const timeB = parseTime(b.subtaskSendTime);
+        // Sắp xếp từ mới đến cũ (timeB - timeA)
+        return timeB - timeA;
+      });
+      return filtered;
+    }
+    function updatePdFormPager(total){
+      const pager = document.getElementById('pdform-pager');
+      const info = document.getElementById('pdform-page-info');
+      const ps = PDFORM_PAGE_SIZE;
+      const pages = Math.max(1, Math.ceil(total/ps));
+      if (PDFORM_PAGE > pages) PDFORM_PAGE = pages;
+      if (info) info.textContent = `Trang ${PDFORM_PAGE}/${pages} (${total} dòng)`;
+      if (pager) pager.style.display = total>0 ? 'flex' : 'none';
+    }
+    function renderPdFormTable(){
+      const body = document.getElementById('pdform-list-body');
+      if (!body) return;
+      const total = PDFORM_FILTERED.length;
+      updatePdFormPager(total);
+      if (!total){
+        body.innerHTML = '<tr><td class="px-3 py-3 text-center text-gray-500" colspan="9">Chưa có dữ liệu</td></tr>';
+        return;
+      }
+      const start = (PDFORM_PAGE-1)*PDFORM_PAGE_SIZE;
+      const end = Math.min(total, start+PDFORM_PAGE_SIZE);
+      const pageItems = PDFORM_FILTERED.slice(start,end);
+      body.innerHTML = pageItems.map(it=>{
+        const statusBadge = ({
+          'Chờ phê duyệt form': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Chờ phê duyệt form</span>',
+          'Leader review': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Leader review</span>',
+          'Đã phê duyệt': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">Đã phê duyệt</span>',
+          'Từ chối': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">Từ chối</span>'
+        })[String(it.ketQua||'')] || `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-200">${escapeHtml(String(it.ketQua||''))}</span>`;
+        // Format thời gian gửi: "2025-11-24 11:03" -> "24/11/2025 11:03"
+        let sendTimeDisplay = '';
+        if (it.subtaskSendTime) {
+          try {
+            const timeStr = String(it.subtaskSendTime).trim();
+            // Xử lý format "2025-11-24 11:03" hoặc "2025-11-24T11:03"
+            const match = timeStr.match(/(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}):(\d{2})/);
+            if (match) {
+              sendTimeDisplay = `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}`;
+            } else {
+              sendTimeDisplay = timeStr;
+            }
+          } catch(e) {
+            sendTimeDisplay = it.subtaskSendTime;
+          }
+        }
+        // Kiểm tra trạng thái để enable/disable nút
+        const canApprove = String(it.ketQua||'') === 'Leader review';
+        const disabled = canApprove ? '' : 'opacity-50 pointer-events-none';
+        // Link form báo cáo - kiểm tra và hiển thị Subtaskformlink
+        let formLink = '<span class="text-gray-400">-</span>';
+        const formLinkValue = String(it.subtaskFormLink || '').trim();
+        if (formLinkValue && formLinkValue !== 'null' && formLinkValue !== 'undefined') {
+          // Đảm bảo URL có protocol
+          let url = formLinkValue;
+          if (!url.match(/^https?:\/\//i)) {
+            url = 'https://' + url;
+          }
+          formLink = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline hover:text-blue-900">Xem form</a>`;
+        }
+        return `
+          <tr>
+            <td class="px-3 py-2">
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-1 rounded-full text-white font-semibold bg-primary-blue hover:brightness-105 pdform-approve-btn ${disabled}" data-id="${it.id}">Duyệt</button>
+                <button class="px-3 py-1 rounded-full text-white font-semibold pdform-reject-btn ${disabled}" style="background:#ef4444" data-id="${it.id}">Từ chối</button>
+              </div>
+            </td>
+            <td class="px-3 py-2">${escapeHtml(it.taskName)}</td>
+            <td class="px-3 py-2">${escapeHtml(it.ma)}</td>
+            <td class="px-3 py-2"><a href="#" class="text-blue-700 hover:underline">${escapeHtml(it.maTacVu)}</a></td>
+            <td class="px-3 py-2">${escapeHtml(it.pic || '')}</td>
+            <td class="px-3 py-2">${statusBadge}</td>
+            <td class="px-3 py-2">${sendTimeDisplay}</td>
+            <td class="px-3 py-2">${formLink}</td>
+            <td class="px-3 py-2">
+              <button class="px-3 py-1 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105 pdform-detail-btn" data-id="${it.id}">Chi tiết</button>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+    async function openPdFormDetail(id){
+      const modalId = 'modal-form-detail';
+      const titleEl = document.getElementById('form-detail-title');
+      const contentEl = document.getElementById('form-detail-content');
+      const item = PDFORM_ITEMS.find(x => String(x.id) === String(id));
+      if (!item){
+        if (contentEl) contentEl.innerHTML = '<div class="text-red-600">Không tìm thấy dữ liệu</div>';
+        openModal(modalId);
+        return;
+      }
+      if (titleEl) titleEl.textContent = `${item.maTacVu} - ${item.taskName}`;
+      if (contentEl) contentEl.innerHTML = '<div class="spinner mx-auto mb-2"></div><p class="text-gray-600 text-center">Đang tải...</p>';
+      openModal(modalId);
+      try{
+        let taskDataObj = null;
+        if (item.taskData){
+          try{
+            taskDataObj = JSON.parse(item.taskData);
+          }catch(e){
+            console.error('Error parsing Taskdata:', e);
+          }
+        }
+        let html = '<div class="space-y-4">';
+        // Thông tin cơ bản
+        html += '<div class="bg-blue-50 p-4 rounded-lg"><h4 class="font-semibold text-blue-800 mb-3">Thông tin cơ bản</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">';
+        html += `<div><span class="font-medium">ID:</span> <span class="text-gray-700">${item.id}</span></div>`;
+        html += `<div><span class="font-medium">Tên tác vụ:</span> <span class="text-gray-700">${escapeHtml(item.taskName)}</span></div>`;
+        html += `<div><span class="font-medium">Mã:</span> <span class="text-gray-700">${escapeHtml(item.ma)}</span></div>`;
+        html += `<div><span class="font-medium">Mã tác vụ:</span> <span class="text-gray-700">${escapeHtml(item.maTacVu)}</span></div>`;
+        html += `<div><span class="font-medium">Trạng thái:</span> <span class="text-gray-700">${escapeHtml(item.ketQua)}</span></div>`;
+        // Format ngày tạo nếu có
+        const createdDate = item.createdAt ? fmtDmy(item.createdAt) : '';
+        if (createdDate) html += `<div><span class="font-medium">Ngày tạo:</span> <span class="text-gray-700">${createdDate}</span></div>`;
+        // Format thời gian gửi
+        let sendTimeDisplay = '';
+        if (item.subtaskSendTime) {
+          try {
+            const timeStr = String(item.subtaskSendTime).trim();
+            const match = timeStr.match(/(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}):(\d{2})/);
+            if (match) {
+              sendTimeDisplay = `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}`;
+            } else {
+              sendTimeDisplay = timeStr;
+            }
+          } catch(e) {
+            sendTimeDisplay = item.subtaskSendTime;
+          }
+        }
+        if (sendTimeDisplay) html += `<div><span class="font-medium">Thời gian gửi:</span> <span class="text-gray-700">${sendTimeDisplay}</span></div>`;
+        if (item.subtaskNote) html += `<div class="md:col-span-2"><span class="font-medium">Ghi chú:</span> <span class="text-gray-700">${escapeHtml(item.subtaskNote)}</span></div>`;
+        if (item.fileAttachment) html += `<div class="md:col-span-2"><span class="font-medium">File đính kèm:</span> <a href="${escapeHtml(item.fileAttachment)}" target="_blank" class="text-blue-700 underline">Xem file</a></div>`;
+        // Hiển thị Link form checklist từ Subtaskformlink
+        const formLinkValue = String(item.subtaskFormLink || '').trim();
+        if (formLinkValue && formLinkValue !== 'null' && formLinkValue !== 'undefined') {
+          // Đảm bảo URL có protocol
+          let url = formLinkValue;
+          if (!url.match(/^https?:\/\//i)) {
+            url = 'https://' + url;
+          }
+          html += `<div class="md:col-span-2"><span class="font-medium">Link form checklist:</span> <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline">Xem file</a></div>`;
+        }
+        html += '</div></div>';
+        // Taskdata - hỗ trợ cả 2 cấu trúc: có TaskForm4Data nested hoặc không
+        if (taskDataObj){
+          html += '<div class="bg-green-50 p-4 rounded-lg"><h4 class="font-semibold text-green-800 mb-3">Thông tin tác vụ chính</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">';
+          // Kiểm tra xem có TaskForm4Data nested không
+          let form4DataObj = null;
+          if (taskDataObj.TaskForm4Data){
+            try{
+              form4DataObj = JSON.parse(taskDataObj.TaskForm4Data);
+            }catch(e){
+              console.error('Error parsing TaskForm4Data:', e);
+            }
+          }
+          // Nếu có TaskForm4Data nested (cấu trúc cũ)
+          if (form4DataObj){
+            if (taskDataObj.TaskName) html += `<div><span class="font-medium">Tên tác vụ:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskName)}</span></div>`;
+            if (taskDataObj.TaskCode) html += `<div><span class="font-medium">Mã tác vụ:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskCode)}</span></div>`;
+            if (taskDataObj.TaskRequesterName) html += `<div><span class="font-medium">Người yêu cầu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskRequesterName)}</span></div>`;
+            if (taskDataObj.TaskRequesterEmail) html += `<div><span class="font-medium">Email:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskRequesterEmail)}</span></div>`;
+            if (taskDataObj.TaskRequestDate) html += `<div><span class="font-medium">Ngày yêu cầu:</span> <span class="text-gray-700">${fmtDmy(taskDataObj.TaskRequestDate)}</span></div>`;
+            if (taskDataObj.TaskDeptRequest) html += `<div><span class="font-medium">Phòng ban:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskDeptRequest)}</span></div>`;
+            if (taskDataObj.TaskPIC) html += `<div><span class="font-medium">PIC:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskPIC)}</span></div>`;
+            if (taskDataObj.TaskStatus) html += `<div><span class="font-medium">Trạng thái:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskStatus)}</span></div>`;
+            if (taskDataObj.TaskPriority) html += `<div><span class="font-medium">Ưu tiên:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskPriority)}</span></div>`;
+            if (taskDataObj.TaskDueDate) html += `<div><span class="font-medium">Hạn:</span> <span class="text-gray-700">${fmtDmy(taskDataObj.TaskDueDate)}</span></div>`;
+            if (form4DataObj.vendor) html += `<div><span class="font-medium">Vendor:</span> <span class="text-gray-700">${escapeHtml(form4DataObj.vendor)}</span></div>`;
+            if (taskDataObj.TaskDescription) html += `<div class="md:col-span-2"><span class="font-medium">Mô tả:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskDescription)}</span></div>`;
+            if (taskDataObj.TaskAttachments) html += `<div class="md:col-span-2"><span class="font-medium">File đính kèm:</span> <a href="${escapeHtml(taskDataObj.TaskAttachments)}" target="_blank" class="text-blue-700 underline">Xem file</a></div>`;
+          } else {
+            // Cấu trúc mới không có TaskForm4Data nested
+            if (taskDataObj.itemName) html += `<div><span class="font-medium">Tên tác vụ:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.itemName)}</span></div>`;
+            if (taskDataObj.requestCode) html += `<div><span class="font-medium">Mã yêu cầu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.requestCode)}</span></div>`;
+            if (taskDataObj.requesterName) html += `<div><span class="font-medium">Người yêu cầu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.requesterName)}</span></div>`;
+            if (taskDataObj.email) html += `<div><span class="font-medium">Email:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.email)}</span></div>`;
+            if (taskDataObj.requestDate) html += `<div><span class="font-medium">Ngày yêu cầu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.requestDate)}</span></div>`;
+            if (taskDataObj.deptRequest) html += `<div><span class="font-medium">Phòng ban:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.deptRequest)}</span></div>`;
+            if (taskDataObj.pic) html += `<div><span class="font-medium">PIC:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.pic)}</span></div>`;
+            if (taskDataObj.itemCode) html += `<div><span class="font-medium">Mã linh kiện:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.itemCode)}</span></div>`;
+            if (taskDataObj.purpose) html += `<div><span class="font-medium">Mục đích:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.purpose)}</span></div>`;
+            if (taskDataObj.projectCode) html += `<div><span class="font-medium">Mã dự án:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.projectCode)}</span></div>`;
+            if (taskDataObj.vendor) html += `<div><span class="font-medium">Vendor:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.vendor)}</span></div>`;
+            if (taskDataObj.qtySamples) html += `<div><span class="font-medium">Số lượng mẫu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.qtySamples)}</span></div>`;
+            if (taskDataObj.desiredDate) html += `<div><span class="font-medium">Hạn mong muốn:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.desiredDate)}</span></div>`;
+            if (taskDataObj.Receiver) html += `<div><span class="font-medium">Người nhận:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.Receiver)}</span></div>`;
+            if (taskDataObj.componentType) html += `<div><span class="font-medium">Loại linh kiện:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.componentType)}</span></div>`;
+            if (taskDataObj.componentStandard) html += `<div><span class="font-medium">Tiêu chuẩn linh kiện:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.componentStandard)}</span></div>`;
+            if (taskDataObj.changeReq) html += `<div class="md:col-span-2"><span class="font-medium">Yêu cầu thay đổi:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.changeReq)}</span></div>`;
+            if (taskDataObj.appliedModel) html += `<div class="md:col-span-2"><span class="font-medium">Model áp dụng:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.appliedModel)}</span></div>`;
+            if (taskDataObj.attachments) html += `<div class="md:col-span-2"><span class="font-medium">File đính kèm:</span> <a href="${escapeHtml(taskDataObj.attachments)}" target="_blank" class="text-blue-700 underline">Xem file</a></div>`;
+          }
+          html += '</div></div>';
+        }
+        html += '</div>';
+        if (contentEl) contentEl.innerHTML = html;
+      }catch(err){
+        console.error('Error loading form detail:', err);
+        if (contentEl) contentEl.innerHTML = '<div class="text-red-600">Lỗi xử lý dữ liệu: ' + err.message + '</div>';
+      }
+    }
+    async function reloadPdForm(){
+      const btn = document.getElementById('pdform-btn-search');
+      const prev = btn ? btn.textContent : '';
+      if (btn){ btn.disabled = true; btn.innerHTML = "<span class='spinner mr-2'></span>Đang tải..."; }
+      try{
+        const items = await fetchPdFormData();
+        PDFORM_ITEMS = Array.isArray(items) ? items : [];
+        PDFORM_FILTERED = applyPdFormFilters(PDFORM_ITEMS);
+        PDFORM_PAGE = 1;
+        renderPdFormTable();
+      }catch(err){
+        showToast('Lỗi tải dữ liệu.','error');
+        console.error('Error reloading pdform:', err);
+      }finally{
+        if (btn){ btn.disabled = false; btn.textContent = prev || 'Tải lại'; }
+      }
+    }
+    function openPdFormApproveModal(id){
+      CURRENT_PDFORM_ID = id;
+      const commentEl = document.getElementById('pdform-approve-comment');
+      if (commentEl) commentEl.value = '';
+      openModal('modal-pdform-approve');
+    }
+    function openPdFormRejectModal(id){
+      CURRENT_PDFORM_ID = id;
+      const reasonEl = document.getElementById('pdform-reject-reason');
+      if (reasonEl) reasonEl.value = '';
+      openModal('modal-pdform-reject');
+    }
+    async function doPdFormApprove(){
+      const btn = document.getElementById('pdform-approve-do');
+      if (!CURRENT_PDFORM_ID || !btn) return;
+      const prev = btn.textContent;
+      btn.disabled = true;
+      btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi...";
+      const comment = (document.getElementById('pdform-approve-comment')?.value||'').trim();
+      // Tìm item trong danh sách để lấy toàn bộ dữ liệu
+      const item = PDFORM_ITEMS.find(it => String(it.id) === String(CURRENT_PDFORM_ID));
+      const fullData = item?.rawData || {};
+      // Tạo thời gian Leaderformactiontime: YYYY-MM-DD HH:mm
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const leaderFormActionTime = `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+      try{
+        // Gửi toàn bộ dữ liệu của tác vụ (loại bỏ Taskdata)
+        const p = new URLSearchParams();
+        // Đặt action trước tiên để đảm bảo không bị ghi đè
+        p.append('action', 'pdform_approve');
+        p.append('id', String(CURRENT_PDFORM_ID));
+        if (comment) p.append('comment', comment);
+        p.append('Leaderformactiontime', leaderFormActionTime);
+        p.append('_ts', Date.now().toString());
+        // Thêm tất cả các trường từ rawData vào params (tránh ghi đè action, id, comment, _ts và loại bỏ Taskdata)
+        Object.keys(fullData).forEach(key => {
+          const lowerKey = String(key).toLowerCase();
+          // Bỏ qua các trường đã được set trước đó và Taskdata
+          if (lowerKey === 'action' || lowerKey === 'id' || lowerKey === 'comment' || lowerKey === '_ts' || lowerKey === 'taskdata') {
+            return;
+          }
+          const value = fullData[key];
+          if (value !== null && value !== undefined) {
+            // Xử lý object/array bằng JSON.stringify, string/number thì dùng trực tiếp
+            if (typeof value === 'object' && !Array.isArray(value)) {
+              p.append(key, JSON.stringify(value));
+            } else if (Array.isArray(value)) {
+              p.append(key, JSON.stringify(value));
+            } else {
+              p.append(key, String(value));
+            }
+          }
+        });
+        // Tạo object payload để gửi dưới dạng JSON (loại bỏ Taskdata)
+        const { Taskdata, ...dataWithoutTaskdata } = fullData;
+        const payloadObj = {
+          action: 'pdform_approve',
+          id: String(CURRENT_PDFORM_ID),
+          comment: comment || '',
+          Leaderformactiontime: leaderFormActionTime,
+          ...dataWithoutTaskdata
+        };
+        // Debug: log payload để kiểm tra
+        console.log('[doPdFormApprove] Payload object:', payloadObj);
+        console.log('[doPdFormApprove] Action:', payloadObj.action);
+        async function tryPostJson(url){
+          try{
+            const r = await fetch(url, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(payloadObj)
+            });
+            const t = await r.text();
+            return { ok: r.ok, raw: t, status: r.status };
+          }catch(err){
+            return { ok: false, raw: String(err||''), status: 0 };
+          }
+        }
+        async function tryPost(url){
+          try{
+            const r = await fetch(url, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+              body: p.toString()
+            });
+            const t = await r.text();
+            return { ok: r.ok, raw: t, status: r.status };
+          }catch(err){
+            return { ok: false, raw: String(err||''), status: 0 };
+          }
+        }
+        async function tryPostNoCors(url){
+          try{
+            await fetch(url, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+              body: p.toString()
+            });
+            return { ok: true, raw: '' };
+          }catch(err){
+            return { ok: false, raw: String(err||'') };
+          }
+        }
+        async function tryGet(url){
+          try{
+            const r = await fetch(`${url}?${p.toString()}`, { method: 'GET' });
+            const t = await r.text();
+            return { ok: r.ok, raw: t };
+          }catch(err){
+            return { ok: false, raw: String(err||'') };
+          }
+        }
+        const ACTION_URL = PDFORM_ACTION_URL;
+        // Thử gửi dưới dạng form-urlencoded trước (không cần preflight, tránh CORS)
+        let r = await tryPost(ACTION_URL);
+        // Nếu form-urlencoded trả về lỗi, thử JSON
+        if (!r.ok && r.status !== 0) {
+          console.log('[doPdFormApprove] Form-urlencoded failed (status:', r.status, '), trying JSON...');
+          r = await tryPostJson(ACTION_URL);
+        }
+        // Nếu cả hai đều thất bại do CORS, thử no-cors (không thể đọc response nhưng có thể gửi được)
+        if (!r.ok && (r.status === 0 || r.status === 403 || r.status === 404)) {
+          console.log('[doPdFormApprove] POST failed (CORS?), trying no-cors...');
+          r = await tryPostNoCors(ACTION_URL);
+          // no-cors luôn trả về ok:true nhưng không thể đọc response
+          if (r.ok) {
+            console.log('[doPdFormApprove] No-cors request sent (cannot verify response)');
+          }
+        }
+        if (!r.ok || /could not be started/i.test(r.raw||'')) {
+          console.log('[doPdFormApprove] POST methods failed, trying GET...');
+          r = await tryGet(ACTION_URL);
+        }
+        if (!r.ok) {
+          const errorMsg = r.raw || `HTTP ${r.status || 'Unknown'}`;
+          console.error('[doPdFormApprove] All methods failed:', errorMsg);
+          throw new Error(errorMsg);
+        }
+        closeModal('modal-pdform-approve');
+        showToast('Đã duyệt form thành công.','success');
+        setTimeout(async () => {
+          try{
+            await reloadPdForm();
+          }catch(reloadErr){
+            console.error('Lỗi khi tải lại bảng:', reloadErr);
+          }
+        }, 500);
+      }catch(err){
+        showToast('Lỗi duyệt form.','error');
+        console.error('Error approving form:', err);
+      }finally{
+        btn.disabled = false;
+        btn.textContent = prev || 'Xác nhận duyệt';
+      }
+    }
+    async function doPdFormReject(){
+      const btn = document.getElementById('pdform-reject-do');
+      if (!CURRENT_PDFORM_ID || !btn) return;
+      const prev = btn.textContent;
+      btn.disabled = true;
+      btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi...";
+      const reason = (document.getElementById('pdform-reject-reason')?.value||'').trim();
+      if (!reason){
+        showToast('Vui lòng nhập lý do.','error');
+        btn.disabled = false;
+        btn.textContent = prev;
+        return;
+      }
+      // Tìm item trong danh sách để lấy toàn bộ dữ liệu
+      const item = PDFORM_ITEMS.find(it => String(it.id) === String(CURRENT_PDFORM_ID));
+      const fullData = item?.rawData || {};
+      // Tạo thời gian Leaderformactiontime: YYYY-MM-DD HH:mm
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const leaderFormActionTime = `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+      try{
+        // Gửi toàn bộ dữ liệu của tác vụ (loại bỏ Taskdata)
+        const p = new URLSearchParams();
+        // Đặt action trước tiên để đảm bảo không bị ghi đè
+        p.append('action', 'pdform_reject');
+        p.append('id', String(CURRENT_PDFORM_ID));
+        p.append('reason', reason);
+        p.append('Leaderformactiontime', leaderFormActionTime);
+        p.append('_ts', Date.now().toString());
+        // Thêm tất cả các trường từ rawData vào params (tránh ghi đè action, id, reason, _ts và loại bỏ Taskdata)
+        Object.keys(fullData).forEach(key => {
+          const lowerKey = String(key).toLowerCase();
+          // Bỏ qua các trường đã được set trước đó và Taskdata
+          if (lowerKey === 'action' || lowerKey === 'id' || lowerKey === 'reason' || lowerKey === '_ts' || lowerKey === 'taskdata') {
+            return;
+          }
+          const value = fullData[key];
+          if (value !== null && value !== undefined) {
+            // Xử lý object/array bằng JSON.stringify, string/number thì dùng trực tiếp
+            if (typeof value === 'object' && !Array.isArray(value)) {
+              p.append(key, JSON.stringify(value));
+            } else if (Array.isArray(value)) {
+              p.append(key, JSON.stringify(value));
+            } else {
+              p.append(key, String(value));
+            }
+          }
+        });
+        // Tạo object payload để gửi dưới dạng JSON (loại bỏ Taskdata)
+        const { Taskdata, ...dataWithoutTaskdata } = fullData;
+        const payloadObj = {
+          action: 'pdform_reject',
+          id: String(CURRENT_PDFORM_ID),
+          reason: reason,
+          Leaderformactiontime: leaderFormActionTime,
+          ...dataWithoutTaskdata
+        };
+        // Debug: log payload để kiểm tra
+        console.log('[doPdFormReject] Payload object:', payloadObj);
+        console.log('[doPdFormReject] Action:', payloadObj.action);
+        async function tryPostJson(url){
+          try{
+            const r = await fetch(url, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(payloadObj)
+            });
+            const t = await r.text();
+            return { ok: r.ok, raw: t, status: r.status };
+          }catch(err){
+            return { ok: false, raw: String(err||''), status: 0 };
+          }
+        }
+        async function tryPost(url){
+          try{
+            const r = await fetch(url, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+              body: p.toString()
+            });
+            const t = await r.text();
+            return { ok: r.ok, raw: t, status: r.status };
+          }catch(err){
+            return { ok: false, raw: String(err||''), status: 0 };
+          }
+        }
+        async function tryPostNoCors(url){
+          try{
+            await fetch(url, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+              body: p.toString()
+            });
+            return { ok: true, raw: '' };
+          }catch(err){
+            return { ok: false, raw: String(err||'') };
+          }
+        }
+        async function tryGet(url){
+          try{
+            const r = await fetch(`${url}?${p.toString()}`, { method: 'GET' });
+            const t = await r.text();
+            return { ok: r.ok, raw: t };
+          }catch(err){
+            return { ok: false, raw: String(err||'') };
+          }
+        }
+        const ACTION_URL = PDFORM_ACTION_URL;
+        // Thử gửi dưới dạng form-urlencoded trước (không cần preflight, tránh CORS)
+        let r = await tryPost(ACTION_URL);
+        // Nếu form-urlencoded trả về lỗi, thử JSON
+        if (!r.ok && r.status !== 0) {
+          console.log('[doPdFormReject] Form-urlencoded failed (status:', r.status, '), trying JSON...');
+          r = await tryPostJson(ACTION_URL);
+        }
+        // Nếu cả hai đều thất bại do CORS, thử no-cors (không thể đọc response nhưng có thể gửi được)
+        if (!r.ok && (r.status === 0 || r.status === 403 || r.status === 404)) {
+          console.log('[doPdFormReject] POST failed (CORS?), trying no-cors...');
+          r = await tryPostNoCors(ACTION_URL);
+          // no-cors luôn trả về ok:true nhưng không thể đọc response
+          if (r.ok) {
+            console.log('[doPdFormReject] No-cors request sent (cannot verify response)');
+          }
+        }
+        if (!r.ok || /could not be started/i.test(r.raw||'')) {
+          console.log('[doPdFormReject] POST methods failed, trying GET...');
+          r = await tryGet(ACTION_URL);
+        }
+        if (!r.ok) {
+          const errorMsg = r.raw || `HTTP ${r.status || 'Unknown'}`;
+          console.error('[doPdFormReject] All methods failed:', errorMsg);
+          throw new Error(errorMsg);
+        }
+        closeModal('modal-pdform-reject');
+        showToast('Đã từ chối form.','success');
+        setTimeout(async () => {
+          try{
+            await reloadPdForm();
+          }catch(reloadErr){
+            console.error('Lỗi khi tải lại bảng:', reloadErr);
+          }
+        }, 500);
+      }catch(err){
+        showToast('Lỗi từ chối form.','error');
+        console.error('Error rejecting form:', err);
+      }finally{
+        btn.disabled = false;
+        btn.textContent = prev || 'Xác nhận từ chối';
+      }
+    }
+
     // ===== Events & Init
     (function init(){
       // Close modal on backdrop click
@@ -949,6 +1722,44 @@
       document.getElementById('reject-do')?.addEventListener('click', (e)=>{ e.preventDefault(); doReject(); });
       document.getElementById('req-do')?.addEventListener('click', (e)=>{ e.preventDefault(); doRequest(); });
 
+      // Phê duyệt Form events
+      document.getElementById('pdform-btn-search')?.addEventListener('click', async (e)=>{ e.preventDefault(); await reloadPdForm(); });
+      document.getElementById('pdform-flt-status')?.addEventListener('change', ()=>{ PDFORM_FILTERED = applyPdFormFilters(PDFORM_ITEMS); PDFORM_PAGE=1; renderPdFormTable(); });
+      document.getElementById('pdform-page-size')?.addEventListener('change', (e)=>{ PDFORM_PAGE_SIZE = Number(e.target.value||20)||20; PDFORM_PAGE=1; renderPdFormTable(); });
+      document.getElementById('pdform-prev')?.addEventListener('click', ()=>{ if (PDFORM_PAGE>1){ PDFORM_PAGE--; renderPdFormTable(); } });
+      document.getElementById('pdform-next')?.addEventListener('click', ()=>{ const pages=Math.max(1,Math.ceil(PDFORM_FILTERED.length/PDFORM_PAGE_SIZE)); if (PDFORM_PAGE<pages){ PDFORM_PAGE++; renderPdFormTable(); } });
+      
+      // Phê duyệt Form table event listener
+      const pdformBody = document.getElementById('pdform-list-body');
+      if (pdformBody) {
+        pdformBody.addEventListener('click', (e)=>{
+          const detailBtn = e.target.closest('.pdform-detail-btn');
+          if (detailBtn){
+            e.preventDefault();
+            const id = detailBtn.getAttribute('data-id');
+            if (id) openPdFormDetail(id);
+            return;
+          }
+          const approveBtn = e.target.closest('.pdform-approve-btn');
+          if (approveBtn && !approveBtn.classList.contains('opacity-50')){
+            e.preventDefault();
+            const id = approveBtn.getAttribute('data-id');
+            if (id) openPdFormApproveModal(id);
+            return;
+          }
+          const rejectBtn = e.target.closest('.pdform-reject-btn');
+          if (rejectBtn && !rejectBtn.classList.contains('opacity-50')){
+            e.preventDefault();
+            const id = rejectBtn.getAttribute('data-id');
+            if (id) openPdFormRejectModal(id);
+            return;
+          }
+        });
+      }
+      // Modal buttons
+      document.getElementById('pdform-approve-do')?.addEventListener('click', doPdFormApprove);
+      document.getElementById('pdform-reject-do')?.addEventListener('click', doPdFormReject);
+
       document.getElementById('btn-search')?.addEventListener('click', async (e)=>{ e.preventDefault(); await reload(); });
       // Persist mã bảo mật
       try{
@@ -1014,6 +1825,29 @@
         document.getElementById('btn-group-all')?.classList.add('active');
         await reload();
       });
+
+      // Tab switching logic
+      const tabs = document.querySelectorAll('.tab-btn');
+      function showSection(id){
+        ['form-approve','form-pdform'].forEach(secId=>{ 
+          const s=document.getElementById(secId); 
+          if(!s) return; 
+          s.style.display = (secId===id)?'block':'none'; 
+        });
+        // Update active state
+        tabs.forEach(t=> t.classList.remove('active'));
+        const activeTab = document.querySelector(`.tab-btn[data-target="${id}"]`);
+        if (activeTab) activeTab.classList.add('active');
+        // Load data when switching to pdform section
+        if (id === 'form-pdform' && PDFORM_ITEMS.length === 0) {
+          reloadPdForm();
+        }
+      }
+      tabs.forEach(b=> b.addEventListener('click', (e)=>{ 
+        e.preventDefault(); 
+        const id=b.getAttribute('data-target'); 
+        if(id) showSection(id); 
+      }));
       document.getElementById('flt-mode')?.addEventListener('change', (e)=>{ applyQuickRangeLocal(e.target.value||'All'); });
       // Lọc thời gian tại chỗ khi thay đổi ngày From/To
       document.getElementById('flt-from')?.addEventListener('change', ()=>{ filterTimeInPlace(); });
@@ -1035,6 +1869,8 @@
         // Default status: Trưởng nhóm Review (Pending2)
         const stSel=document.getElementById('flt-status'); if (stSel){ stSel.value = 'Pending2'; }
       }catch(_){ }
+      // Show default section
+      showSection('form-approve');
       reload();
     })();
 
