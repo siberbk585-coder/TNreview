@@ -1035,43 +1035,44 @@
         function getFrom(lowerObj, ...keys){ for(const k of keys){ const kk=String(k||'').toLowerCase(); if (lowerObj.hasOwnProperty(kk)) return lowerObj[kk]; } return ''; }
         return rows.map(x=>{
           const lx = lowerKeyMap(x||{});
-          // Lấy PIC từ taskData hoặc rawData
-          let pic = '';
-          const taskDataStr = getFrom(lx,'taskdata','task_data','Taskdata') || '';
-          if (taskDataStr) {
-            try {
-              const taskDataObj = JSON.parse(taskDataStr);
-              // Thử lấy từ cấu trúc cũ (TaskPIC) hoặc mới (pic)
-              pic = taskDataObj.TaskPIC || taskDataObj.pic || taskDataObj.PIC || '';
-              // Nếu có TaskForm4Data nested, thử lấy từ đó
-              if (!pic && taskDataObj.TaskForm4Data) {
-                try {
-                  const form4Data = JSON.parse(taskDataObj.TaskForm4Data);
-                  pic = form4Data.pic || form4Data.PIC || '';
-                } catch(e) {}
-              }
-            } catch(e) {}
-          }
-          // Nếu không có trong taskData, thử lấy từ rawData trực tiếp
-          if (!pic) {
-            pic = getFrom(lx,'pic','PIC','người gửi','nguoi gui','assignee','Assignee') || '';
-          }
+          // Lấy dữ liệu Subtask (hiển thị trên bảng)
+          const subtaskName = getFrom(lx,'subtaskname','SubtaskName') || '';
+          const subtaskPIC = getFrom(lx,'subtaskpic','SubtaskPIC') || '';
+          const subtaskStatus = getFrom(lx,'subtaskstatus','Subtaskstatus') || '';
+          const subtaskTimeSend = getFrom(lx,'subtasktimesend','Subtasktimesend') || '';
+          const subtaskFormLink = getFrom(lx,'subtaskformlink','Subtaskformlink') || '';
+          const subtaskCode = getFrom(lx,'subtaskcode','Subtaskcode') || '';
+          const subtaskItemCode = getFrom(lx,'subtaskitemcode','Subtaskitemcode') || '';
+          const subtaskNote = getFrom(lx,'subtasknote','Subtasknote') || '';
+          const parentId = getFrom(lx,'parent_id','parentid') || '';
+          const taskRequestCode = getFrom(lx,'taskrequestcode','TaskRequestCode') || '';
+          
+          // Lưu toàn bộ dữ liệu Task để hiển thị trong modal
+          const taskData = {};
+          Object.keys(x||{}).forEach(key => {
+            if (key.startsWith('Task') || key === 'Id' || key === 'CreatedAt' || key === 'UpdatedAt' || 
+                key === 'type' || key === 'project_code' || key === 'parent_id') {
+              taskData[key] = x[key];
+            }
+          });
+          
           return {
             id: getFrom(lx,'id','ID','Id') || '',
-            taskName: getFrom(lx,'task name','taskname','task_name','Task Name') || '',
-            ma: getFrom(lx,'mã','ma','code','Mã') || '',
-            maTacVu: getFrom(lx,'mã tác vụ','ma_tac_vu','taskcode','Mã tác vụ') || '',
-            pic: pic,
-            ketQua: getFrom(lx,'trạng thái','trangthai','status','kết quả','ketqua','Kết quả','Trạng thái') || '',
-            createdAt: getFrom(lx,'createdat','created_at','ngay_tao','CreatedAt') || '',
-            subtaskSendTime: getFrom(lx,'subtasksendtime','subtask_send_time','Subtasksendtime') || '',
-            taskData: taskDataStr,
-            subtaskNote: getFrom(lx,'subtasknote','subtask_note','note','Subtasknote') || '',
-            subtaskFormLink: getFrom(lx,'subtaskformlink','subtask_form_link','Subtaskformlink','SubtaskFormLink','formlink','FormLink','form_link','checklistlink','ChecklistLink','checklist_link') || '',
-            fileAttachment: getFrom(lx,'file attachment','file_attachment','attachment','File attachment') || '',
+            // Dữ liệu Subtask cho bảng
+            subtaskName: subtaskName,
+            subtaskPIC: subtaskPIC,
+            subtaskStatus: subtaskStatus,
+            subtaskTimeSend: subtaskTimeSend,
+            subtaskFormLink: subtaskFormLink,
+            subtaskCode: subtaskCode,
+            subtaskItemCode: subtaskItemCode,
+            subtaskNote: subtaskNote,
+            maTacVu: parentId || taskRequestCode || '',
+            // Dữ liệu Task cho modal (lưu toàn bộ)
+            taskData: taskData,
             rawData: x || {}
           };
-        }).filter(r => r.id || r.ma || r.taskName);
+        }).filter(r => r.id && (r.subtaskName || r.subtaskCode));
       }catch(err){
         console.error('Error fetching pdform data:', err);
         return [];
@@ -1081,7 +1082,7 @@
       const statusFilter = (document.getElementById('pdform-flt-status')?.value || 'All');
       let filtered = all.filter(it=>{
         if (statusFilter === 'All') return true;
-        const ketQua = String(it.ketQua||'').trim();
+        const ketQua = String(it.subtaskStatus||'').trim();
         // Map các giá trị có thể có
         if (statusFilter === 'Leader review') {
           return ketQua === 'Leader review' || ketQua === 'leader review';
@@ -1111,8 +1112,8 @@
             return 0;
           }
         };
-        const timeA = parseTime(a.subtaskSendTime);
-        const timeB = parseTime(b.subtaskSendTime);
+        const timeA = parseTime(a.subtaskTimeSend);
+        const timeB = parseTime(b.subtaskTimeSend);
         // Sắp xếp từ mới đến cũ (timeB - timeA)
         return timeB - timeA;
       });
@@ -1144,14 +1145,15 @@
           'Chờ phê duyệt form': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Chờ phê duyệt form</span>',
           'Leader review': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Leader review</span>',
           'Đã phê duyệt': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">Đã phê duyệt</span>',
+          'Được duyệt': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">Được duyệt</span>',
           'Từ chối': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">Từ chối</span>'
-        })[String(it.ketQua||'')] || `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-200">${escapeHtml(String(it.ketQua||''))}</span>`;
-        // Format thời gian gửi: "2025-11-24 11:03" -> "24/11/2025 11:03"
+        })[String(it.subtaskStatus||'')] || `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-200">${escapeHtml(String(it.subtaskStatus||''))}</span>`;
+        // Format thời gian gửi: "2025-11-25 09:46:00+00:00" -> "25/11/2025 09:46"
         let sendTimeDisplay = '';
-        if (it.subtaskSendTime) {
+        if (it.subtaskTimeSend) {
           try {
-            const timeStr = String(it.subtaskSendTime).trim();
-            // Xử lý format "2025-11-24 11:03" hoặc "2025-11-24T11:03"
+            const timeStr = String(it.subtaskTimeSend).trim();
+            // Xử lý format "2025-11-25 09:46:00+00:00" hoặc "2025-11-25T09:46"
             const match = timeStr.match(/(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}):(\d{2})/);
             if (match) {
               sendTimeDisplay = `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}`;
@@ -1159,11 +1161,11 @@
               sendTimeDisplay = timeStr;
             }
           } catch(e) {
-            sendTimeDisplay = it.subtaskSendTime;
+            sendTimeDisplay = it.subtaskTimeSend;
           }
         }
         // Kiểm tra trạng thái để enable/disable nút
-        const canApprove = String(it.ketQua||'') === 'Leader review';
+        const canApprove = String(it.subtaskStatus||'') === 'Leader review';
         const disabled = canApprove ? '' : 'opacity-50 pointer-events-none';
         // Link form báo cáo - kiểm tra và hiển thị Subtaskformlink
         let formLink = '<span class="text-gray-400">-</span>';
@@ -1176,6 +1178,8 @@
           }
           formLink = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline hover:text-blue-900">Xem form</a>`;
         }
+        // Mã hiển thị: ưu tiên Subtaskcode, nếu không có thì dùng Subtaskitemcode
+        const maDisplay = it.subtaskCode || it.subtaskItemCode || '';
         return `
           <tr>
             <td class="px-3 py-2">
@@ -1184,10 +1188,10 @@
                 <button class="px-3 py-1 rounded-full text-white font-semibold pdform-reject-btn ${disabled}" style="background:#ef4444" data-id="${it.id}">Từ chối</button>
               </div>
             </td>
-            <td class="px-3 py-2">${escapeHtml(it.taskName)}</td>
-            <td class="px-3 py-2">${escapeHtml(it.ma)}</td>
-            <td class="px-3 py-2"><a href="#" class="text-blue-700 hover:underline">${escapeHtml(it.maTacVu)}</a></td>
-            <td class="px-3 py-2">${escapeHtml(it.pic || '')}</td>
+            <td class="px-3 py-2">${escapeHtml(it.subtaskName || '')}</td>
+            <td class="px-3 py-2">${escapeHtml(maDisplay)}</td>
+            <td class="px-3 py-2"><a href="#" class="text-blue-700 hover:underline">${escapeHtml(it.maTacVu || '')}</a></td>
+            <td class="px-3 py-2">${escapeHtml(it.subtaskPIC || '')}</td>
             <td class="px-3 py-2">${statusBadge}</td>
             <td class="px-3 py-2">${sendTimeDisplay}</td>
             <td class="px-3 py-2">${formLink}</td>
@@ -1207,109 +1211,83 @@
         openModal(modalId);
         return;
       }
-      if (titleEl) titleEl.textContent = `${item.maTacVu} - ${item.taskName}`;
+      // Lấy thông tin Task từ taskData
+      const taskData = item.taskData || {};
+      const taskRequestCode = taskData.TaskRequestCode || taskData.parent_id || '';
+      const taskItemName = taskData.TaskItemName || '';
+      if (titleEl) titleEl.textContent = `${taskRequestCode} - ${taskItemName}`;
       if (contentEl) contentEl.innerHTML = '<div class="spinner mx-auto mb-2"></div><p class="text-gray-600 text-center">Đang tải...</p>';
       openModal(modalId);
       try{
-        let taskDataObj = null;
-        if (item.taskData){
-          try{
-            taskDataObj = JSON.parse(item.taskData);
-          }catch(e){
-            console.error('Error parsing Taskdata:', e);
-          }
-        }
         let html = '<div class="space-y-4">';
-        // Thông tin cơ bản
-        html += '<div class="bg-blue-50 p-4 rounded-lg"><h4 class="font-semibold text-blue-800 mb-3">Thông tin cơ bản</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">';
-        html += `<div><span class="font-medium">ID:</span> <span class="text-gray-700">${item.id}</span></div>`;
-        html += `<div><span class="font-medium">Tên tác vụ:</span> <span class="text-gray-700">${escapeHtml(item.taskName)}</span></div>`;
-        html += `<div><span class="font-medium">Mã:</span> <span class="text-gray-700">${escapeHtml(item.ma)}</span></div>`;
-        html += `<div><span class="font-medium">Mã tác vụ:</span> <span class="text-gray-700">${escapeHtml(item.maTacVu)}</span></div>`;
-        html += `<div><span class="font-medium">Trạng thái:</span> <span class="text-gray-700">${escapeHtml(item.ketQua)}</span></div>`;
-        // Format ngày tạo nếu có
-        const createdDate = item.createdAt ? fmtDmy(item.createdAt) : '';
-        if (createdDate) html += `<div><span class="font-medium">Ngày tạo:</span> <span class="text-gray-700">${createdDate}</span></div>`;
-        // Format thời gian gửi
-        let sendTimeDisplay = '';
-        if (item.subtaskSendTime) {
-          try {
-            const timeStr = String(item.subtaskSendTime).trim();
-            const match = timeStr.match(/(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}):(\d{2})/);
-            if (match) {
-              sendTimeDisplay = `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}`;
-            } else {
-              sendTimeDisplay = timeStr;
-            }
-          } catch(e) {
-            sendTimeDisplay = item.subtaskSendTime;
-          }
+        // Thông tin Task
+        html += '<div class="bg-blue-50 p-4 rounded-lg"><h4 class="font-semibold text-blue-800 mb-3">Thông tin Task</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">';
+        
+        // Hiển thị tất cả các trường Task từ taskData
+        if (taskData.Id) html += `<div><span class="font-medium">ID:</span> <span class="text-gray-700">${escapeHtml(String(taskData.Id))}</span></div>`;
+        if (taskData.TaskRequestCode) html += `<div><span class="font-medium">Mã yêu cầu:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskRequestCode))}</span></div>`;
+        if (taskData.TaskRequesterName) html += `<div><span class="font-medium">Người yêu cầu:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskRequesterName))}</span></div>`;
+        if (taskData.TaskRequesterEmail) html += `<div><span class="font-medium">Email:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskRequesterEmail))}</span></div>`;
+        if (taskData.TaskRequestDate) html += `<div><span class="font-medium">Ngày yêu cầu:</span> <span class="text-gray-700">${fmtDmy(String(taskData.TaskRequestDate))}</span></div>`;
+        if (taskData.TaskDeptRequest) html += `<div><span class="font-medium">Phòng ban yêu cầu:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskDeptRequest))}</span></div>`;
+        if (taskData.TaskItemName) html += `<div><span class="font-medium">Tên sản phẩm:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskItemName))}</span></div>`;
+        if (taskData.TaskItemCode) html += `<div><span class="font-medium">Mã sản phẩm:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskItemCode))}</span></div>`;
+        if (taskData.TaskComponentType) html += `<div><span class="font-medium">Loại linh kiện:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskComponentType))}</span></div>`;
+        if (taskData.TaskComponentStandard) html += `<div><span class="font-medium">Tiêu chuẩn linh kiện:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskComponentStandard))}</span></div>`;
+        if (taskData.TaskPurpose) html += `<div class="md:col-span-2"><span class="font-medium">Mục đích đánh giá:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskPurpose))}</span></div>`;
+        if (taskData.TaskVendor) html += `<div><span class="font-medium">Nhà cung cấp:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskVendor))}</span></div>`;
+        if (taskData.TaskQtySamples) html += `<div><span class="font-medium">Số lượng mẫu:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskQtySamples))}</span></div>`;
+        if (taskData.TaskDesiredDate) html += `<div><span class="font-medium">Hạn mong muốn:</span> <span class="text-gray-700">${fmtDmy(String(taskData.TaskDesiredDate))}</span></div>`;
+        if (taskData.TaskPersonReceived) html += `<div><span class="font-medium">Người nhận mẫu:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskPersonReceived))}</span></div>`;
+        if (taskData.TaskNotes) html += `<div class="md:col-span-2"><span class="font-medium">Ghi chú:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskNotes))}</span></div>`;
+        if (taskData.TaskChangeFromLastNote) html += `<div class="md:col-span-2"><span class="font-medium">Thay đổi từ lần trước:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskChangeFromLastNote))}</span></div>`;
+        if (taskData.TaskSampleSubmissionNo) html += `<div><span class="font-medium">Số lần nộp mẫu:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskSampleSubmissionNo))}</span></div>`;
+        if (taskData.TaskAltCode) html += `<div><span class="font-medium">Mã thay thế:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskAltCode))}</span></div>`;
+        if (taskData.TaskAppliedModel) html += `<div class="md:col-span-2"><span class="font-medium">Model áp dụng:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskAppliedModel))}</span></div>`;
+        if (taskData.TaskAttachments) html += `<div class="md:col-span-2"><span class="font-medium">File đính kèm:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskAttachments))}</span></div>`;
+        if (taskData.TaskDescription) html += `<div class="md:col-span-2"><span class="font-medium">Mô tả:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskDescription))}</span></div>`;
+        if (taskData.TaskPIC) html += `<div><span class="font-medium">PIC:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskPIC))}</span></div>`;
+        if (taskData.TaskDepartment) html += `<div><span class="font-medium">Phòng ban:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskDepartment))}</span></div>`;
+        if (taskData.TaskCreatedAt) html += `<div><span class="font-medium">Ngày tạo:</span> <span class="text-gray-700">${fmtDmy(String(taskData.TaskCreatedAt))}</span></div>`;
+        if (taskData.TaskDueDate) html += `<div><span class="font-medium">Hạn đánh giá:</span> <span class="text-gray-700">${fmtDmy(String(taskData.TaskDueDate))}</span></div>`;
+        if (taskData.TaskStatus) html += `<div><span class="font-medium">Trạng thái:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskStatus))}</span></div>`;
+        if (taskData.TaskPriority) html += `<div><span class="font-medium">Ưu tiên:</span> <span class="text-gray-700">${escapeHtml(String(taskData.TaskPriority))}</span></div>`;
+        if (taskData.project_code) html += `<div><span class="font-medium">Mã dự án:</span> <span class="text-gray-700">${escapeHtml(String(taskData.project_code))}</span></div>`;
+        if (taskData.parent_id) html += `<div><span class="font-medium">Mã tác vụ cha:</span> <span class="text-gray-700">${escapeHtml(String(taskData.parent_id))}</span></div>`;
+        if (taskData.CreatedAt) {
+          const createdDate = fmtDmy(String(taskData.CreatedAt));
+          if (createdDate) html += `<div><span class="font-medium">Ngày tạo (CreatedAt):</span> <span class="text-gray-700">${createdDate}</span></div>`;
         }
-        if (sendTimeDisplay) html += `<div><span class="font-medium">Thời gian gửi:</span> <span class="text-gray-700">${sendTimeDisplay}</span></div>`;
+        if (taskData.UpdatedAt) {
+          const updatedDate = fmtDmy(String(taskData.UpdatedAt));
+          if (updatedDate) html += `<div><span class="font-medium">Ngày cập nhật:</span> <span class="text-gray-700">${updatedDate}</span></div>`;
+        }
+        
+        html += '</div></div>';
+        
+        // Thông tin Subtask (nếu cần hiển thị)
+        html += '<div class="bg-green-50 p-4 rounded-lg"><h4 class="font-semibold text-green-800 mb-3">Thông tin Subtask</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">';
+        if (item.subtaskName) html += `<div><span class="font-medium">Tên subtask:</span> <span class="text-gray-700">${escapeHtml(item.subtaskName)}</span></div>`;
+        if (item.subtaskPIC) html += `<div><span class="font-medium">PIC subtask:</span> <span class="text-gray-700">${escapeHtml(item.subtaskPIC)}</span></div>`;
+        if (item.subtaskCode) html += `<div><span class="font-medium">Mã subtask:</span> <span class="text-gray-700">${escapeHtml(item.subtaskCode)}</span></div>`;
+        if (item.subtaskItemCode) html += `<div><span class="font-medium">Mã sản phẩm subtask:</span> <span class="text-gray-700">${escapeHtml(item.subtaskItemCode)}</span></div>`;
+        if (item.subtaskStatus) html += `<div><span class="font-medium">Trạng thái:</span> <span class="text-gray-700">${escapeHtml(item.subtaskStatus)}</span></div>`;
+        if (item.subtaskTimeSend) {
+          const sendTimeDisplay = fmtDmy(item.subtaskTimeSend);
+          if (sendTimeDisplay) html += `<div><span class="font-medium">Thời gian gửi:</span> <span class="text-gray-700">${sendTimeDisplay}</span></div>`;
+        }
         if (item.subtaskNote) html += `<div class="md:col-span-2"><span class="font-medium">Ghi chú:</span> <span class="text-gray-700">${escapeHtml(item.subtaskNote)}</span></div>`;
-        if (item.fileAttachment) html += `<div class="md:col-span-2"><span class="font-medium">File đính kèm:</span> <a href="${escapeHtml(item.fileAttachment)}" target="_blank" class="text-blue-700 underline">Xem file</a></div>`;
-        // Hiển thị Link form checklist từ Subtaskformlink
-        const formLinkValue = String(item.subtaskFormLink || '').trim();
-        if (formLinkValue && formLinkValue !== 'null' && formLinkValue !== 'undefined') {
-          // Đảm bảo URL có protocol
-          let url = formLinkValue;
-          if (!url.match(/^https?:\/\//i)) {
-            url = 'https://' + url;
+        if (item.subtaskFormLink) {
+          let url = String(item.subtaskFormLink).trim();
+          if (url && url !== 'null' && url !== 'undefined') {
+            if (!url.match(/^https?:\/\//i)) {
+              url = 'https://' + url;
+            }
+            html += `<div class="md:col-span-2"><span class="font-medium">Link form:</span> <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline">Xem form</a></div>`;
           }
-          html += `<div class="md:col-span-2"><span class="font-medium">Link form checklist:</span> <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline">Xem file</a></div>`;
         }
         html += '</div></div>';
-        // Taskdata - hỗ trợ cả 2 cấu trúc: có TaskForm4Data nested hoặc không
-        if (taskDataObj){
-          html += '<div class="bg-green-50 p-4 rounded-lg"><h4 class="font-semibold text-green-800 mb-3">Thông tin tác vụ chính</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">';
-          // Kiểm tra xem có TaskForm4Data nested không
-          let form4DataObj = null;
-          if (taskDataObj.TaskForm4Data){
-            try{
-              form4DataObj = JSON.parse(taskDataObj.TaskForm4Data);
-            }catch(e){
-              console.error('Error parsing TaskForm4Data:', e);
-            }
-          }
-          // Nếu có TaskForm4Data nested (cấu trúc cũ)
-          if (form4DataObj){
-            if (taskDataObj.TaskName) html += `<div><span class="font-medium">Tên tác vụ:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskName)}</span></div>`;
-            if (taskDataObj.TaskCode) html += `<div><span class="font-medium">Mã tác vụ:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskCode)}</span></div>`;
-            if (taskDataObj.TaskRequesterName) html += `<div><span class="font-medium">Người yêu cầu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskRequesterName)}</span></div>`;
-            if (taskDataObj.TaskRequesterEmail) html += `<div><span class="font-medium">Email:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskRequesterEmail)}</span></div>`;
-            if (taskDataObj.TaskRequestDate) html += `<div><span class="font-medium">Ngày yêu cầu:</span> <span class="text-gray-700">${fmtDmy(taskDataObj.TaskRequestDate)}</span></div>`;
-            if (taskDataObj.TaskDeptRequest) html += `<div><span class="font-medium">Phòng ban:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskDeptRequest)}</span></div>`;
-            if (taskDataObj.TaskPIC) html += `<div><span class="font-medium">PIC:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskPIC)}</span></div>`;
-            if (taskDataObj.TaskStatus) html += `<div><span class="font-medium">Trạng thái:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskStatus)}</span></div>`;
-            if (taskDataObj.TaskPriority) html += `<div><span class="font-medium">Ưu tiên:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskPriority)}</span></div>`;
-            if (taskDataObj.TaskDueDate) html += `<div><span class="font-medium">Hạn:</span> <span class="text-gray-700">${fmtDmy(taskDataObj.TaskDueDate)}</span></div>`;
-            if (form4DataObj.vendor) html += `<div><span class="font-medium">Vendor:</span> <span class="text-gray-700">${escapeHtml(form4DataObj.vendor)}</span></div>`;
-            if (taskDataObj.TaskDescription) html += `<div class="md:col-span-2"><span class="font-medium">Mô tả:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.TaskDescription)}</span></div>`;
-            if (taskDataObj.TaskAttachments) html += `<div class="md:col-span-2"><span class="font-medium">File đính kèm:</span> <a href="${escapeHtml(taskDataObj.TaskAttachments)}" target="_blank" class="text-blue-700 underline">Xem file</a></div>`;
-          } else {
-            // Cấu trúc mới không có TaskForm4Data nested
-            if (taskDataObj.itemName) html += `<div><span class="font-medium">Tên tác vụ:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.itemName)}</span></div>`;
-            if (taskDataObj.requestCode) html += `<div><span class="font-medium">Mã yêu cầu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.requestCode)}</span></div>`;
-            if (taskDataObj.requesterName) html += `<div><span class="font-medium">Người yêu cầu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.requesterName)}</span></div>`;
-            if (taskDataObj.email) html += `<div><span class="font-medium">Email:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.email)}</span></div>`;
-            if (taskDataObj.requestDate) html += `<div><span class="font-medium">Ngày yêu cầu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.requestDate)}</span></div>`;
-            if (taskDataObj.deptRequest) html += `<div><span class="font-medium">Phòng ban:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.deptRequest)}</span></div>`;
-            if (taskDataObj.pic) html += `<div><span class="font-medium">PIC:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.pic)}</span></div>`;
-            if (taskDataObj.itemCode) html += `<div><span class="font-medium">Mã linh kiện:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.itemCode)}</span></div>`;
-            if (taskDataObj.purpose) html += `<div><span class="font-medium">Mục đích:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.purpose)}</span></div>`;
-            if (taskDataObj.projectCode) html += `<div><span class="font-medium">Mã dự án:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.projectCode)}</span></div>`;
-            if (taskDataObj.vendor) html += `<div><span class="font-medium">Vendor:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.vendor)}</span></div>`;
-            if (taskDataObj.qtySamples) html += `<div><span class="font-medium">Số lượng mẫu:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.qtySamples)}</span></div>`;
-            if (taskDataObj.desiredDate) html += `<div><span class="font-medium">Hạn mong muốn:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.desiredDate)}</span></div>`;
-            if (taskDataObj.Receiver) html += `<div><span class="font-medium">Người nhận:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.Receiver)}</span></div>`;
-            if (taskDataObj.componentType) html += `<div><span class="font-medium">Loại linh kiện:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.componentType)}</span></div>`;
-            if (taskDataObj.componentStandard) html += `<div><span class="font-medium">Tiêu chuẩn linh kiện:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.componentStandard)}</span></div>`;
-            if (taskDataObj.changeReq) html += `<div class="md:col-span-2"><span class="font-medium">Yêu cầu thay đổi:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.changeReq)}</span></div>`;
-            if (taskDataObj.appliedModel) html += `<div class="md:col-span-2"><span class="font-medium">Model áp dụng:</span> <span class="text-gray-700">${escapeHtml(taskDataObj.appliedModel)}</span></div>`;
-            if (taskDataObj.attachments) html += `<div class="md:col-span-2"><span class="font-medium">File đính kèm:</span> <a href="${escapeHtml(taskDataObj.attachments)}" target="_blank" class="text-blue-700 underline">Xem file</a></div>`;
-          }
-          html += '</div></div>';
-        }
+        
         html += '</div>';
         if (contentEl) contentEl.innerHTML = html;
       }catch(err){
@@ -1353,6 +1331,17 @@
       btn.disabled = true;
       btn.innerHTML = "<span class='spinner mr-2'></span>Đang gửi...";
       const comment = (document.getElementById('pdform-approve-comment')?.value||'').trim();
+      // Lấy mật mã từ input secret-code
+      function normCode(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').toLowerCase(); }
+      const codeInput = normCode(document.getElementById('secret-code')?.value||'');
+      // Mã bảo mật bắt buộc để thao tác duyệt
+      if (!codeInput){ 
+        showToast('Vui lòng nhập mã bảo mật trước khi duyệt.','error');
+        btn.disabled = false;
+        btn.textContent = prev || 'Xác nhận duyệt';
+        return;
+      }
+      const reviewer = codeInput; // gửi mã duyệt (không dấu) lên server
       // Tìm item trong danh sách để lấy toàn bộ dữ liệu
       const item = PDFORM_ITEMS.find(it => String(it.id) === String(CURRENT_PDFORM_ID));
       const fullData = item?.rawData || {};
@@ -1371,13 +1360,14 @@
         p.append('action', 'pdform_approve');
         p.append('id', String(CURRENT_PDFORM_ID));
         if (comment) p.append('comment', comment);
+        p.append('reviewer', reviewer); // Thêm mật mã người duyệt
         p.append('Leaderformactiontime', leaderFormActionTime);
         p.append('_ts', Date.now().toString());
-        // Thêm tất cả các trường từ rawData vào params (tránh ghi đè action, id, comment, _ts và loại bỏ Taskdata)
+        // Thêm tất cả các trường từ rawData vào params (tránh ghi đè action, id, comment, reviewer, _ts và loại bỏ Taskdata)
         Object.keys(fullData).forEach(key => {
           const lowerKey = String(key).toLowerCase();
           // Bỏ qua các trường đã được set trước đó và Taskdata
-          if (lowerKey === 'action' || lowerKey === 'id' || lowerKey === 'comment' || lowerKey === '_ts' || lowerKey === 'taskdata') {
+          if (lowerKey === 'action' || lowerKey === 'id' || lowerKey === 'comment' || lowerKey === 'reviewer' || lowerKey === '_ts' || lowerKey === 'taskdata') {
             return;
           }
           const value = fullData[key];
@@ -1398,6 +1388,7 @@
           action: 'pdform_approve',
           id: String(CURRENT_PDFORM_ID),
           comment: comment || '',
+          reviewer: reviewer, // Thêm mật mã người duyệt
           Leaderformactiontime: leaderFormActionTime,
           ...dataWithoutTaskdata
         };
@@ -1508,6 +1499,17 @@
         btn.textContent = prev;
         return;
       }
+      // Lấy mật mã từ input secret-code
+      function normCode(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').toLowerCase(); }
+      const codeInput = normCode(document.getElementById('secret-code')?.value||'');
+      // Mã bảo mật bắt buộc để thao tác từ chối
+      if (!codeInput){ 
+        showToast('Vui lòng nhập mã bảo mật trước khi từ chối.','error');
+        btn.disabled = false;
+        btn.textContent = prev;
+        return;
+      }
+      const reviewer = codeInput; // gửi mã duyệt (không dấu) lên server
       // Tìm item trong danh sách để lấy toàn bộ dữ liệu
       const item = PDFORM_ITEMS.find(it => String(it.id) === String(CURRENT_PDFORM_ID));
       const fullData = item?.rawData || {};
@@ -1526,13 +1528,14 @@
         p.append('action', 'pdform_reject');
         p.append('id', String(CURRENT_PDFORM_ID));
         p.append('reason', reason);
+        p.append('reviewer', reviewer); // Thêm mật mã người duyệt
         p.append('Leaderformactiontime', leaderFormActionTime);
         p.append('_ts', Date.now().toString());
-        // Thêm tất cả các trường từ rawData vào params (tránh ghi đè action, id, reason, _ts và loại bỏ Taskdata)
+        // Thêm tất cả các trường từ rawData vào params (tránh ghi đè action, id, reason, reviewer, _ts và loại bỏ Taskdata)
         Object.keys(fullData).forEach(key => {
           const lowerKey = String(key).toLowerCase();
           // Bỏ qua các trường đã được set trước đó và Taskdata
-          if (lowerKey === 'action' || lowerKey === 'id' || lowerKey === 'reason' || lowerKey === '_ts' || lowerKey === 'taskdata') {
+          if (lowerKey === 'action' || lowerKey === 'id' || lowerKey === 'reason' || lowerKey === 'reviewer' || lowerKey === '_ts' || lowerKey === 'taskdata') {
             return;
           }
           const value = fullData[key];
@@ -1553,6 +1556,7 @@
           action: 'pdform_reject',
           id: String(CURRENT_PDFORM_ID),
           reason: reason,
+          reviewer: reviewer, // Thêm mật mã người duyệt
           Leaderformactiontime: leaderFormActionTime,
           ...dataWithoutTaskdata
         };
