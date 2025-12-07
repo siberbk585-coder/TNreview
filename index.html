@@ -177,6 +177,10 @@
           <button id="next" class="px-3 py-1 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Sau</button>
         </div>
       </div>
+
+      <div class="mt-4 flex justify-end">
+        <a href="https://docs.google.com/spreadsheets/d/18tnDOM5LeY6aGyXlU-zg0WLyZ6X1CCUEPfjDbdynuJE/edit?gid=949905011#gid=949905011" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg border border-blue-300 bg-white text-primary-blue font-semibold hover:bg-blue-50 transition-colors">Lịch sử phê duyệt</a>
+      </div>
     </section>
 
     <!-- Section: Phê duyệt form -->
@@ -205,7 +209,7 @@
               <th class="px-3 py-2 min-w-[120px]">Mã</th>
               <th class="px-3 py-2 min-w-[180px]">Mã tác vụ</th>
               <th class="px-3 py-2 min-w-[160px]">PIC</th>
-              <th class="px-3 py-2 min-w-[160px]">Kết quả</th>
+              <th class="px-3 py-2 min-w-[160px]">Người đánh giá</th>
               <th class="px-3 py-2 min-w-[160px]">Thời gian gửi</th>
               <th class="px-3 py-2 min-w-[180px]">Form báo cáo</th>
               <th class="px-3 py-2 min-w-[120px]">Chi tiết</th>
@@ -231,6 +235,10 @@
           <button id="pdform-prev" class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Trước</button>
           <button id="pdform-next" class="px-3 py-1 rounded-lg text-white font-semibold bg-primary-blue hover:brightness-105">Sau</button>
         </div>
+      </div>
+
+      <div class="mt-4 flex justify-end">
+        <a href="https://docs.google.com/spreadsheets/d/18tnDOM5LeY6aGyXlU-zg0WLyZ6X1CCUEPfjDbdynuJE/edit?gid=524875009#gid=524875009" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg border border-blue-300 bg-white text-primary-blue font-semibold hover:bg-blue-50 transition-colors">Lịch sử phê duyệt</a>
       </div>
     </section>
   </main>
@@ -1052,6 +1060,10 @@
           const subtaskNote = getFrom(lx,'subtasknote','Subtasknote') || '';
           const parentId = getFrom(lx,'parent_id','parentid') || '';
           const taskRequestCode = getFrom(lx,'taskrequestcode','TaskRequestCode') || '';
+          // Lấy dữ liệu Task cho bảng
+          const taskItemName = getFrom(lx,'taskitemname','TaskItemName') || '';
+          const taskItemCode = getFrom(lx,'taskitemcode','TaskItemCode') || '';
+          const taskPIC = getFrom(lx,'taskpic','TaskPIC') || '';
           
           // Lưu toàn bộ dữ liệu Task để hiển thị trong modal
           const taskData = {};
@@ -1073,7 +1085,11 @@
             subtaskCode: subtaskCode,
             subtaskItemCode: subtaskItemCode,
             subtaskNote: subtaskNote,
-            maTacVu: parentId || taskRequestCode || '',
+            maTacVu: subtaskCode || '', // Mã tác vụ lấy từ Subtaskcode
+            // Dữ liệu Task cho bảng
+            taskItemName: taskItemName, // Tên tác vụ
+            taskItemCode: taskItemCode, // Mã
+            taskPIC: taskPIC, // PIC
             // Dữ liệu Task cho modal (lưu toàn bộ)
             taskData: taskData,
             rawData: x || {}
@@ -1147,13 +1163,6 @@
       const end = Math.min(total, start+PDFORM_PAGE_SIZE);
       const pageItems = PDFORM_FILTERED.slice(start,end);
       body.innerHTML = pageItems.map(it=>{
-        const statusBadge = ({
-          'Chờ phê duyệt form': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Chờ phê duyệt form</span>',
-          'Leader review': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Leader review</span>',
-          'Đã phê duyệt': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">Đã phê duyệt</span>',
-          'Được duyệt': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">Được duyệt</span>',
-          'Từ chối': '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">Từ chối</span>'
-        })[String(it.subtaskStatus||'')] || `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-200">${escapeHtml(String(it.subtaskStatus||''))}</span>`;
         // Format thời gian gửi: "2025-11-25 09:46:00+00:00" -> "25/11/2025 09:46"
         let sendTimeDisplay = '';
         if (it.subtaskTimeSend) {
@@ -1184,8 +1193,6 @@
           }
           formLink = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline hover:text-blue-900">Xem form</a>`;
         }
-        // Mã hiển thị: ưu tiên Subtaskcode, nếu không có thì dùng Subtaskitemcode
-        const maDisplay = it.subtaskCode || it.subtaskItemCode || '';
         return `
           <tr>
             <td class="px-3 py-2">
@@ -1194,11 +1201,11 @@
                 <button class="px-3 py-1 rounded-full text-white font-semibold pdform-reject-btn ${disabled}" style="background:#ef4444" data-id="${it.id}">Từ chối</button>
               </div>
             </td>
-            <td class="px-3 py-2">${escapeHtml(it.subtaskName || '')}</td>
-            <td class="px-3 py-2">${escapeHtml(maDisplay)}</td>
+            <td class="px-3 py-2">${escapeHtml(it.taskItemName || '')}</td>
+            <td class="px-3 py-2">${escapeHtml(it.taskItemCode || '')}</td>
             <td class="px-3 py-2"><a href="#" class="text-blue-700 hover:underline">${escapeHtml(it.maTacVu || '')}</a></td>
+            <td class="px-3 py-2">${escapeHtml(it.taskPIC || '')}</td>
             <td class="px-3 py-2">${escapeHtml(it.subtaskPIC || '')}</td>
-            <td class="px-3 py-2">${statusBadge}</td>
             <td class="px-3 py-2">${sendTimeDisplay}</td>
             <td class="px-3 py-2">${formLink}</td>
             <td class="px-3 py-2">
