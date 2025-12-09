@@ -717,7 +717,15 @@
         const id = getFrom(lx,'id','ID','Id','reportId','report_id');
         const code = getFrom(lx,'code','mã báo cáo','ma','taskcode','reportCode','mã tác vụ','Mã tác vụ');
         const title = getFrom(lx,'title','tiêu đề','name','reportTitle','tên','task name','Task Name');
-        const reporter = getFrom(lx,'reporter','người lập','employee','author','nhân viên','assignee','Assignee');
+        // Lấy giá trị Người lập: ưu tiên PICSPM (nếu có và có ký tự chữ), sau đó assignee/Assignee
+        let reporter = '';
+        const picSpm = getFrom(lx,'picspm','PICSPM');
+        // Kiểm tra PICSPM có giá trị và có ít nhất 1 ký tự chữ
+        if (picSpm && String(picSpm).trim() && /[a-zA-ZÀ-ỹ]/.test(String(picSpm))) {
+          reporter = picSpm;
+        } else {
+          reporter = getFrom(lx,'assignee','Assignee');
+        }
         const reporterEmail = getFrom(lx,'reporterEmail','email');
         const submitDate = getFrom(lx,'submitDate','ngày nộp','date','ngaynop','ngày cập nhật gần nhất','Ngày cập nhật gần nhất');
         const wishDate = getFrom(lx,'wishDate','hạn mong muốn','hanmongmuon','wish','Hạn mong muốn');
@@ -1813,11 +1821,19 @@
             else if (statusRaw.includes('Chờ phê duyệt 2') || statusRaw.includes('Trưởng nhóm Review') || 
                      statusRaw.includes('Trường nhóm Review') || sNorm === 'truongnhomreview') status = 'Pending2';
             else if (statusRaw.includes('Done') || statusRaw.includes('Đã duyệt')) status = 'Approved';
+            // Lấy giá trị Người lập: ưu tiên PICSPM (nếu có và có ký tự chữ), sau đó assignee/Assignee
+            let reporter = '';
+            const picSpm = String(x['PICSPM']||x['picspm']||'');
+            if (picSpm && picSpm.trim() && /[a-zA-ZÀ-ỹ]/.test(picSpm)) {
+              reporter = picSpm;
+            } else {
+              reporter = String(x['Assignee']||x['assignee']||'');
+            }
             return {
               id: String(x['Id']||x['ID']||x['id']||x['Mã tác vụ']||x['Mã báo cáo']||''),
               code: String(x['Mã tác vụ']||x['Mã báo cáo']||x['code']||x['Id']||x['ID']||''),
               title: String(x['Task Name']||x['Tiêu đề']||x['title']||''),
-              reporter: String(x['Assignee']||x['Người lập']||x['reporter']||''),
+              reporter: reporter,
               reporterEmail: String(x['Email']||x['reporterEmail']||''),
               submitDate: String(x['Ngày cập nhật gần nhất']||x['Ngày nộp']||x['submitDate']||''),
               wishDate: String(x['Hạn mong muốn']||x['wishDate']||''),
