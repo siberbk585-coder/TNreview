@@ -1071,6 +1071,8 @@
           const taskItemName = getFrom(lx,'taskitemname','TaskItemName') || '';
           const taskItemCode = getFrom(lx,'taskitemcode','TaskItemCode') || '';
           const taskPIC = getFrom(lx,'taskpic','TaskPIC') || '';
+          // Lấy type để lọc
+          const type = getFrom(lx,'type','Type') || '';
           
           // Lưu toàn bộ dữ liệu Task để hiển thị trong modal
           const taskData = {};
@@ -1097,6 +1099,8 @@
             taskItemName: taskItemName, // Tên tác vụ
             taskItemCode: taskItemCode, // Mã
             taskPIC: taskPIC, // PIC
+            // Type để lọc
+            type: type,
             // Dữ liệu Task cho modal (lưu toàn bộ)
             taskData: taskData,
             rawData: x || {}
@@ -1110,6 +1114,10 @@
     function applyPdFormFilters(all){
       const statusFilter = (document.getElementById('pdform-flt-status')?.value || 'All');
       let filtered = all.filter(it=>{
+        // Lọc bỏ các item có type là "form5_subtask_auto_c"
+        const itemType = String(it.type||'').trim();
+        if (itemType === 'form5_subtask_auto_c') return false;
+        
         if (statusFilter === 'All') return true;
         const ketQua = String(it.subtaskStatus||'').trim();
         // Map các giá trị có thể có
