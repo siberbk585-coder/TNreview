@@ -1,0 +1,8 @@
+# ============================================================
+# ĐỔI TÊN FILE NÀY THÀNH:  .htaccess   (có dấu chấm ở đầu)
+# cPanel File Manager: chọn htaccess.txt → Rename → .htaccess
+# Hoặc bật Settings → Show Hidden Files để thấy .htaccess có sẵn trong zip
+# ============================================================
+
+# TNreview / DQA TaskHub
+# cPanel Node.js App sẽ ghi thêm cấu hình Passenger vào file này.

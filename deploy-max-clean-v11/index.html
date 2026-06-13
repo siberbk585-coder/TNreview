@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DQA TaskHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Bright app dashboard tokens */
+    :root{
+      --bg:#f3f8ff;
+      --panel:#ffffff;
+      --line:#dbe7f6;
+      --line-2:#c6d8ec;
+      --text:#142033;
+      --muted:#64748b;
+      --soft:#eef7ff;
+      --primary:#2784ff;
+      --primary-2:#1268df;
+      --accent:#22d3ee;
+      --green:#1cc7a5;
+      --yellow:#f5bd26;
+      --violet:#9b7bff;
+      --rose:#f0637b;
+      --ring:rgba(39,132,255,.18);
+      --danger:#df2f3f
+    }
+    body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:
+      radial-gradient(circle at 12% 0%,rgba(34,211,238,.18),transparent 28%),
+      radial-gradient(circle at 88% 8%,rgba(155,123,255,.15),transparent 30%),
+      linear-gradient(180deg,#f7fbff 0%,#eef6ff 100%);
+      color:var(--text);letter-spacing:0}
+    .tracking-tight{letter-spacing:0!important}
+    .btn{border-radius:10px;padding:8px 12px;font-weight:700;font-size:14px;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid transparent}
+    .btn-sm{border-radius:7px;padding:6px 9px;font-size:12px}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),#24b6ff);color:#fff;box-shadow:0 10px 22px rgba(39,132,255,.18)}.btn-primary:hover{background:linear-gradient(135deg,var(--primary-2),#0ea5e9)}
+    .btn-danger{background:#fff1f3;color:var(--danger);border-color:#ffc8d0}.btn-danger:hover{background:#ffe6eb}
+    .btn-amber{background:#fff6d8;color:#9a6300;border-color:#f8da79}.btn-amber:hover{background:#ffefb3}
+    .btn-ghost{background:#fff;border-color:var(--line);color:#2c405c}.btn-ghost:hover{background:var(--soft);border-color:#b9d8ff}
+    .card{background:rgba(255,255,255,.92);border:1px solid rgba(219,231,246,.9);border-radius:18px;box-shadow:0 20px 50px rgba(40,84,130,.08)}
+    .approval-card{background:rgba(255,255,255,.94);border:1px solid rgba(211,226,244,.95);border-radius:20px;overflow:hidden;box-shadow:0 24px 70px rgba(54,91,136,.10);width:100%;max-width:100%;min-width:0}
+    .approval-header{padding:22px 22px 18px;border-bottom:1px solid var(--line);background:
+      linear-gradient(135deg,rgba(230,246,255,.92),rgba(255,255,255,.96) 44%,rgba(246,240,255,.72))}
+    .approval-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;padding:16px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#ffffff,#f7fbff)}
+    .toolbar-actions{display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:10px;min-width:128px}
+    .toolbar-actions-right{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-left:auto}
+    .bulk-hint{font-size:13px;color:var(--muted);text-align:right;white-space:nowrap}
+    .filter-bar{display:grid;grid-template-columns:minmax(220px,2fr) minmax(150px,1fr) repeat(2,minmax(140px,1fr)) minmax(150px,1fr);gap:10px 12px;align-items:end}
+    .filter-item{min-width:0}
+    .filter-item.filter-search{grid-column:auto}
+    .field-label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:5px;letter-spacing:.03em}
+    .table-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fafcff,#fff);font-size:13px;color:var(--muted)}
+    .table-meta strong{color:var(--text);font-weight:800}
+    .message-banner{margin:0 20px 12px;padding:10px 14px;border-radius:10px;background:#fff1f3;border:1px solid #ffc8d0;color:var(--danger);font-size:13px;font-weight:600}
+    .approval-header h2{font-size:1.35rem;line-height:1.25}
+    .approval-subtitle{font-size:13px;color:var(--muted);margin-top:4px}
+    .metric-row{display:flex;gap:8px;flex-wrap:wrap}
+    .metric-chip{border:1px solid #d9e8f8;border-radius:14px;padding:10px 14px;min-width:108px;background:#fff;box-shadow:0 10px 22px rgba(40,84,130,.05)}
+    .metric-chip:first-child{border-left:1px solid #d9e8f8}
+    .metric-chip:nth-child(1){background:linear-gradient(135deg,#e9f5ff,#fff)}
+    .metric-chip:nth-child(2){background:linear-gradient(135deg,#eafff8,#fff)}
+    .metric-chip:nth-child(3){background:linear-gradient(135deg,#fff7d8,#fff)}
+    .metric-chip .label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:750}
+    .metric-chip .value{font-size:22px;line-height:1.1;font-weight:800;color:var(--text);margin-top:3px}
+    .field{border:1px solid var(--line-2);border-radius:11px;background:#fff;padding:9px 11px;outline:none;color:var(--text);box-shadow:0 4px 14px rgba(40,84,130,.04)}
+    .field:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px var(--ring)}
+    .nav-btn{display:flex;width:100%;align-items:center;gap:10px;border-radius:11px;padding:9px 11px;font-weight:750;color:#52647c;text-align:left;border:1px solid transparent;line-height:1.25}
+    .nav-btn:hover{background:#f5fbff;color:var(--text);border-color:#dcecff}.nav-btn.active{background:#eaf5ff;color:#0870e5;border-color:#cce5ff;box-shadow:inset 3px 0 0 var(--primary)}
+    .nav-section-label{font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:#8ea0b8;padding:14px 8px 6px}
+    .nav-btn .nav-ext{margin-left:auto;font-size:11px;opacity:.55}
+    .pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:750;border:1px solid;line-height:1.2}
+    .spinner{border:2px solid #d7e3f7;border-top:2px solid var(--primary);border-radius:50%;width:16px;height:16px;animation:spin 1s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    th,td{white-space:nowrap}
+    .table-wrap{overflow:auto;border-top:1px solid var(--line);background:#fff;max-width:100%}
+    .data-table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+    .data-table thead th{position:sticky;top:0;z-index:1;background:#f6fbff;color:#58708e;font-size:11px;letter-spacing:.02em;text-transform:none;font-weight:800;text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}
+    .data-table tbody td{padding:12px 14px;border-bottom:1px solid #e7eff8;vertical-align:middle}
+    .data-table tbody tr:nth-child(even){background:#fbfdff}
+    .data-table tbody tr:hover{background:#eff8ff}
+    .report-table{table-layout:fixed}
+    .report-table th,.report-table td{overflow:hidden;text-overflow:ellipsis}
+    .report-table .col-check{width:42px}
+    .report-table .col-code{width:190px}
+    .report-table .col-title{width:330px}
+    .report-table .col-person{width:180px}
+    .report-table .col-date{width:110px}
+    .report-table .col-status{width:145px}
+    .report-table .col-note{width:220px}
+    .report-table .col-action{width:118px}
+    .code-link{font-weight:750;color:var(--primary);text-decoration:none}
+    .code-link:hover{text-decoration:underline}
+    button.code-link{background:none;border:0;padding:0;cursor:pointer}
+    .two-line{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .two-line b{color:#171717;font-size:13px;font-weight:700}
+    .two-line span{color:var(--muted);font-size:12px}
+    .cell-title-wrap{white-space:normal;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .action-stack{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .action-stack-compact{display:flex;gap:4px;min-width:104px;flex-wrap:wrap}
+    .action-stack-compact .btn-sm{padding:5px 8px;font-size:11px;line-height:1.2;justify-content:center}
+    .quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+    .quick-card{border:1px solid #dbe7f6;border-radius:18px;background:rgba(255,255,255,.96);padding:14px;box-shadow:0 16px 34px rgba(40,84,130,.07)}
+    .quick-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .quick-card-title{font-size:15px;line-height:1.35;font-weight:850;color:#0f172a;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .quick-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+    .quick-meta div{border:1px solid #e5edf8;border-radius:12px;background:#f8fbff;padding:8px}
+    .quick-meta span{display:block;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.04em;color:#64748b}
+    .quick-meta b{display:block;font-size:12px;color:#0f172a;margin-top:3px;white-space:normal}
+    .quick-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:12px}
+    .quick-actions .btn{width:100%;min-height:38px}
+    .quick-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#f7fbff)}
+    @media(max-width:640px){.quick-grid{grid-template-columns:1fr}.quick-actions{grid-template-columns:1fr}.quick-card{border-radius:16px}.quick-meta{grid-template-columns:1fr}}
+    .bulk-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:linear-gradient(135deg,#eef6ff,#fff);border:1px solid #d4e8ff}
+    .bulk-bar .bulk-count{font-size:13px;font-weight:800;color:#1e4f8a;white-space:nowrap}
+    .empty-state{padding:44px 16px;text-align:center;color:var(--muted)}
+    .empty-state b{display:block;color:var(--text);margin-bottom:4px}
+    .app-shell{background:transparent;overflow-x:hidden;display:flex;min-height:100vh;flex-direction:column}
+    .global-nav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:18px;padding:10px 22px;background:rgba(255,255,255,.9);border-bottom:1px solid rgba(219,231,246,.95);backdrop-filter:blur(18px);box-shadow:0 10px 30px rgba(40,84,130,.06)}
+    .global-brand{display:flex;align-items:center;gap:10px;min-width:max-content;background:transparent;border:0;padding:0;cursor:pointer}
+    .global-brand:focus-visible{outline:3px solid var(--ring);outline-offset:3px;border-radius:14px}
+    .global-brand .brand-title{font-weight:850;letter-spacing:-.015em;line-height:1.1}
+    .global-brand .brand-subtitle{font-size:11px;color:#71839a;margin-top:2px}
+    .global-menu{display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow-x:auto;scrollbar-width:thin;padding:4px}
+    .global-menu-group{display:flex;align-items:center;gap:6px}
+    .global-menu-group + .global-menu-group{margin-left:6px;padding-left:10px;border-left:1px solid #e4eef9}
+    .global-menu .nav-btn{width:auto;white-space:nowrap;padding:8px 12px}
+    .global-actions{display:flex;align-items:center;gap:8px;min-width:max-content}
+    .user-chip{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15;padding:6px 10px;border:1px solid #dbe7f6;border-radius:12px;background:#f8fbff;color:#334155;max-width:180px}
+    .user-chip b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    .user-chip span{font-size:10px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    @media(max-width:1023px){.global-nav{align-items:flex-start;flex-wrap:wrap;padding:10px 14px}.global-menu{order:3;flex-basis:100%;padding-left:0}.global-actions{margin-left:auto}}
+    .topbar{background:rgba(255,255,255,.78);border-bottom:1px solid rgba(219,231,246,.95);backdrop-filter:blur(16px)}
+    .brand-mark{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-radius:13px;box-shadow:0 14px 30px rgba(39,132,255,.24)}
+    .story-hero{position:relative;overflow:hidden;border:1px solid #d7e8fb;border-radius:22px;background:linear-gradient(135deg,#ffffff 0%,#eefaff 42%,#f7f1ff 100%);box-shadow:0 18px 42px rgba(40,84,130,.08)}
+    .story-hero::after{content:"";position:absolute;right:-90px;top:-110px;width:260px;height:260px;border-radius:999px;background:radial-gradient(circle,rgba(39,132,255,.18),rgba(39,132,255,0) 68%)}
+    .story-kicker{font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#0ea5e9}
+    .story-number{font-size:52px;line-height:.95;font-weight:900;letter-spacing:-.03em;color:#0f172a}
+    .insight-card{border:1px solid #dbe7f6;border-radius:18px;background:rgba(255,255,255,.88);padding:16px;box-shadow:0 10px 26px rgba(40,84,130,.05)}
+    .insight-card b{display:block;font-size:24px;line-height:1.1;color:#0f172a;margin-top:6px}
+    .insight-card span{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+    .overview-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,1fr);gap:16px;align-items:start}
+    .spm-mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .spm-mini-card{border:1px solid #dbe7f6;border-radius:14px;background:#f8fbff;padding:12px}
+    .spm-mini-card .label{font-size:11px;font-weight:850;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+    .spm-mini-card .value{font-size:24px;font-weight:900;color:#0f172a;line-height:1.05;margin-top:5px}
+    .spm-progress{height:8px;border-radius:999px;background:#e8f0fa;overflow:hidden}
+    .spm-progress span{display:block;height:100%;border-radius:999px}
+    .donut-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .donut-card{border:1px solid #dbe7f6;border-radius:16px;background:#fbfdff;padding:14px;text-align:center}
+    .donut-svg{width:150px;max-width:100%;height:auto;margin:0 auto}
+    .donut-card .donut-title{font-size:12px;font-weight:850;color:#475569;text-transform:uppercase;letter-spacing:.04em}
+    .donut-card .donut-value{font-size:22px;font-weight:900;color:#0f172a;margin-top:4px}
+    .donut-card .donut-note{font-size:12px;color:#64748b;margin-top:4px}
+    @media(max-width:1100px){.overview-grid{grid-template-columns:1fr}.spm-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    .stat-card{position:relative;overflow:hidden}
+    .stat-card::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--tone,#22d3ee)}
+    .stat-card.blue{--tone:#38bdf8;background:linear-gradient(180deg,#fff,#eef8ff)}
+    .stat-card.green{--tone:#1cc7a5;background:linear-gradient(180deg,#fff,#ecfff9)}
+    .stat-card.yellow{--tone:#f5bd26;background:linear-gradient(180deg,#fff,#fff8dc)}
+    .stat-card.violet{--tone:#9b7bff;background:linear-gradient(180deg,#fff,#f5f0ff)}
+    button.stat-card{display:block;width:100%;text-align:left;border:1px solid #dbe7f6;cursor:pointer;transition:box-shadow .15s,border-color .15s,transform .12s}
+    button.stat-card:hover{box-shadow:0 14px 32px rgba(40,84,130,.1);transform:translateY(-1px)}
+    button.stat-card.active{border-color:var(--primary);box-shadow:0 0 0 2px rgba(39,132,255,.22),0 14px 32px rgba(39,132,255,.12)}
+    .info-tile{border:1px solid #dbe7f6;border-radius:16px;padding:16px;background:#fff;box-shadow:0 12px 28px rgba(40,84,130,.05)}
+    .info-tile.blue{background:linear-gradient(135deg,#eaf6ff,#fff)}
+    .info-tile.green{background:linear-gradient(135deg,#eafff8,#fff)}
+    .info-tile.yellow{background:linear-gradient(135deg,#fff8dc,#fff)}
+    .info-tile.violet{background:linear-gradient(135deg,#f3efff,#fff)}
+    .task-tile{border:1px solid #dbe7f6;border-radius:16px;padding:16px;background:#fff;min-height:108px;box-shadow:0 12px 28px rgba(40,84,130,.05);cursor:pointer;transition:box-shadow .15s,transform .12s}
+    button.task-tile:hover,a.task-tile:hover{box-shadow:0 14px 32px rgba(40,84,130,.1);transform:translateY(-1px)}
+    .task-tile.leader{background:linear-gradient(135deg,#eaf6ff,#fff)}
+    .task-tile.manager{background:linear-gradient(135deg,#eafff8,#fff)}
+    .task-tile.status{background:linear-gradient(135deg,#fff7dc,#fff)}
+    .task-tile.tool{background:linear-gradient(135deg,#eef4ff,#fff)}
+    .task-tile.tool p{display:none}
+    .hr-tool-frame{display:block;width:100%;min-height:min(85vh,920px);border:0;background:#f8fafc}
+    .hr-tool-frame.embed-fill{min-height:calc(100vh - 52px);height:calc(100vh - 52px);background:#fff}
+    .hr-tool-shell{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 12px 28px rgba(40,84,130,.06)}
+    .main-body{width:100%;max-width:none;min-width:0;box-sizing:border-box;overflow-x:hidden}
+    .main-body-embed{padding:0!important;max-width:none!important}
+    .topbar-embed{padding:10px 16px!important;min-height:0}
+    .topbar-embed h1{font-size:1rem;font-weight:700}
+    .hr-tool-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#f7fbff)}
+    .toast-wrap{position:fixed;right:16px;bottom:16px;z-index:50;display:flex;flex-direction:column;gap:10px;max-width:min(420px,calc(100vw - 32px))}
+    .toast{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(15,23,42,.12)}
+    .toast .t{font-weight:800;color:var(--text);font-size:13px}
+    .toast .d{color:var(--muted);font-size:12px;margin-top:2px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);display:grid;place-items:center;z-index:60;padding:16px}
+    .modal{width:min(720px,100%);background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 30px 90px rgba(15,23,42,.25);overflow:hidden}
+    .modal-h{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .modal-b{padding:16px 18px}
+    .modal-f{padding:14px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;background:#f8fbff}
+    .preview-modal{width:min(1100px,calc(100vw - 32px))}
+    .preview-frame{width:100%;height:min(76vh,760px);border:1px solid var(--line);border-radius:12px;background:#f8fbff}
+
+    /* Skeleton (boneyard-inspired: subtle, technical, non-distracting) */
+    .skel{position:relative;overflow:hidden;background:#eaf1ff;border-radius:10px}
+    .skel::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(234,241,255,0) 0%,rgba(255,255,255,.7) 50%,rgba(234,241,255,0) 100%);transform:translateX(-100%);animation:skel-shimmer 1.6s linear infinite}
+    @keyframes skel-shimmer{to{transform:translateX(100%)}}
+    .skel-soft{background:#f0f6ff}
+    .skel-line{height:12px;border-radius:999px}
+    .skel-chip{height:18px;border-radius:999px}
+    .skel-cell{height:14px;border-radius:8px}
+    .skel-row{display:grid;grid-template-columns:44px 150px 160px 360px 160px 110px 110px 130px 1fr;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid #eeece7}
+    .skel-row .skel{width:100%}
+    .skel-overlay{position:absolute;inset:0;background:#fff}
+    @media(max-width:1100px){.approval-toolbar{grid-template-columns:1fr}.toolbar-actions{align-items:stretch}.toolbar-actions-right{margin-left:0}.bulk-hint{text-align:left}.filter-bar{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-item.filter-search{grid-column:1/-1}}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.15.1/umd/Recharts.js"></script>
+  <script type="text/babel">
+    const {useEffect, useMemo, useState} = React;
+    const R = window.Recharts || {};
+    const {
+      ComposedChart, BarChart, Bar, Line, XAxis, YAxis, CartesianGrid,
+      Tooltip, Legend, ResponsiveContainer, LabelList
+    } = R;
+    const hasRecharts = Boolean(ComposedChart && BarChart && ResponsiveContainer);
+    const CHART_MARGIN = { top: 40, right: 28, left: 10, bottom: 12 };
+    const COMBO_CHART_MARGIN = { top: 56, right: 40, left: 14, bottom: 16 };
+    const yDomainHeadroom = (max) => Math.ceil((max || 0) * 1.14);
+
+    function toChartRows(rows){
+      return (rows || []).map(r => {
+        const total = Number(r.workHours) || 0;
+        const ot = Math.min(Number(r.overtime) || 0, total);
+        return {
+          ...r,
+          tasks: Number(r.tasks) || 0,
+          people: Number(r.people) || 0,
+          regularHours: Math.max(0, total - ot),
+          overtime: ot
+        };
+      });
+    }
+
+    const DASHBOARD_METRICS = {
+      tasks: {
+        title: 'Xu hướng tác vụ đã nhận theo tháng',
+        subtitle: 'Đường: số tác vụ · Cột: giờ công tổng (phần gạch = tăng ca trong tổng).'
+      },
+      workHours: {
+        title: 'Xu hướng số giờ công theo tháng',
+        subtitle: 'Cột chồng: giờ thường + tăng ca (phần gạch) trong tổng giờ công.'
+      },
+      people: {
+        title: 'Xu hướng số nhân sự theo tháng',
+        subtitle: 'Số nhân sự tham gia theo từng tháng (T1–T5).'
+      },
+      overtime: {
+        title: 'Xu hướng số giờ tăng ca theo tháng',
+        subtitle: 'Tổng giờ tăng ca theo từng tháng.'
+      }
+    };
+
+    function DashboardTooltip({active, payload, label}){
+      if (!active || !payload?.length) return null;
+      const row = payload[0]?.payload || {};
+      const fmt = (n) => Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 1 });
+      return (
+        <div className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-xs shadow-lg">
+          <div className="font-extrabold text-slate-800 mb-1">{label} · {row.monthKey || ''}</div>
+          <div className="text-slate-600">Số tác vụ: <b>{fmt(row.tasks)}</b></div>
+          <div className="text-slate-600">Giờ công tổng: <b>{fmt(row.workHours)}</b></div>
+          <div className="text-slate-600">— Giờ thường: {fmt(row.regularHours)}</div>
+          <div className="text-slate-600">— Tăng ca: {fmt(row.overtime)}</div>
+        </div>
+      );
+    }
+
+    function norm(value){
+      return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+    }
+    function compactNorm(value){ return norm(value).replace(/\s+/g,''); }
+    function escapeText(value){ return String(value ?? ''); }
+    function parseDate(value){
+      const text = String(value || '').trim();
+      if (!text) return null;
+      if (/^\d{4}-\d{2}-\d{2}/.test(text)) return new Date(text);
+      const m = text.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+      if (m) return new Date(Number(m[3].length === 2 ? '20' + m[3] : m[3]), Number(m[2]) - 1, Number(m[1]));
+      const t = Date.parse(text);
+      return Number.isNaN(t) ? null : new Date(t);
+    }
+    function fmtDate(value){
+      const d = parseDate(value);
+      if (!d) return '';
+      return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+    function nowMinute(){
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+    function deepRows(json){
+      if (!json) return [];
+      if (Array.isArray(json)) return json;
+      const out = [], seen = new Set(), q = [json];
+      while (q.length){
+        const cur = q.shift();
+        if (!cur || typeof cur !== 'object' || seen.has(cur)) continue;
+        seen.add(cur);
+        Object.values(cur).forEach(v => {
+          if (Array.isArray(v)){
+            if (v.length && typeof v[0] === 'object') out.push(...v);
+            v.forEach(x => x && typeof x === 'object' && q.push(x));
+          } else if (v && typeof v === 'object') q.push(v);
+        });
+      }
+      return out.length ? out : [json];
+    }
+    function lowerMap(obj){
+      const map = {};
+      Object.keys(obj || {}).forEach(k => { map[String(k).toLowerCase()] = obj[k]; });
+      return map;
+    }
+    function get(obj, keys){
+      const l = lowerMap(obj);
+      for (const key of keys){
+        const v = l[String(key).toLowerCase()];
+        if (v !== undefined && v !== null) return v;
+      }
+      return '';
+    }
+    function getNonEmpty(obj, keys){
+      const l = lowerMap(obj);
+      for (const key of keys){
+        const v = l[String(key).toLowerCase()];
+        if (v !== undefined && v !== null && String(v).trim() !== '') return String(v).trim();
+      }
+      return '';
+    }
+    const CHANGE_POINTS_BC_KEYS = [
+      'Điểm thay đổi BC','Diem thay doi BC','diem_thay_doi_bc',
+      'changePoints','change_points','Điểm thay đổi'
+    ];
+    function pickChangePointsBC(row){
+      return getNonEmpty(unwrapReportRow(row), CHANGE_POINTS_BC_KEYS);
+    }
+    const REPORT_NOTE_KEYS = [
+      'Điểm thay đổi BC','Diem thay doi BC','changePoints','Điểm thay đổi','change_points',
+      'Ghi chú','ghi_chu','ghi chu','Ghichu','GhichuBC',
+      'note','Note','notes','Notes',
+      'Subtask Note','SubtaskNote','subtask_note','subtask note',
+      'comment','Comment','comments','Comments',
+      'Nhận xét PIC','PICcomment','Ghi chú PIC','pic_comment',
+      'Mô tả','Mo ta','description','TaskDescription',
+      'Nhận xét','nhan_xet','remarks','remark'
+    ];
+    function unwrapReportRow(row){
+      if (!row || typeof row !== 'object') return row;
+      if (row.json && typeof row.json === 'object') return row.json;
+      return row;
+    }
+    function pickReportNote(row, conclusion=''){
+      const src = unwrapReportRow(row);
+      const changeBc = pickChangePointsBC(src);
+      if (changeBc) return changeBc;
+      const direct = getNonEmpty(src, REPORT_NOTE_KEYS);
+      if (direct) return direct;
+      const conc = String(conclusion || '').trim();
+      const l = lowerMap(src);
+      for (const [key, val] of Object.entries(l)) {
+        const k = String(key).toLowerCase();
+        if (!/(ghi|chu|note|comment|nhan|xet|thay|doi|change|mo ta|description|remark)/.test(k)) continue;
+        if (/(ket.?luan|conclusion|status|trang|thai|link|url|mailto|assignee|reporter|picspm|submit|wish|date|ngay|han|ma|code|title|tieu|email|phone|file|pdf)/.test(k)) continue;
+        const s = String(val ?? '').trim();
+        if (s && s !== conc) return s;
+      }
+      return '';
+    }
+    function toNumber(value){
+      if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+      const cleaned = String(value ?? '').replace(/[^\d.-]/g,'');
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : 0;
+    }
+    function firstNumber(obj, keys){
+      const value = get(obj || {}, keys);
+      return value === '' ? 0 : toNumber(value);
+    }
+    function statusCode(value, fallback='Pending'){
+      const v = norm(value);
+      const c = compactNorm(value);
+      if (!v) return fallback;
+      if (['pending1','chopheduyet1','cpd1'].includes(c) || v.includes('chờ phê duyệt 1')) return 'Pending1';
+      if (['pending2','chopheduyet2','cpd2','truongnhomreview'].includes(c) || v.includes('trưởng nhóm review') || v.includes('truong nhom review')) return 'Pending2';
+      if (['pending','chopheduyet','cho'].includes(c) || v === 'chờ phê duyệt') return fallback === 'Pending1' ? 'Pending1' : 'Pending';
+      if (['approved','done','hoanthanh','daduyet'].includes(c)) return 'Approved';
+      if (['changesrequested','dangsua','yeucaubosung'].includes(c)) return 'ChangesRequested';
+      if (['testben','test_ben'].includes(c)) return 'TestBen';
+      if (['rejected','tuchoi'].includes(c)) return 'Rejected';
+      return String(value || fallback);
+    }
+    function statusBadge(status){
+      const map = {
+        Pending: ['Chờ phê duyệt','bg-blue-50 text-blue-700 border-blue-200'],
+        Pending1: ['Chờ phê duyệt','bg-blue-50 text-blue-700 border-blue-200'],
+        Pending2: ['Trưởng nhóm Review','bg-indigo-50 text-indigo-700 border-indigo-200'],
+        Approved: ['Done','bg-emerald-50 text-emerald-700 border-emerald-200'],
+        ChangesRequested: ['Đang sửa','bg-amber-50 text-amber-700 border-amber-200'],
+        TestBen: ['Test bền','bg-violet-50 text-violet-700 border-violet-200'],
+        Rejected: ['Từ chối','bg-red-50 text-red-700 border-red-200']
+      };
+      const item = map[status] || [status || '-', 'bg-slate-50 text-slate-700 border-slate-200'];
+      return <span className={`pill ${item[1]}`}>{item[0]}</span>;
+    }
+    function statusLabel(status){ return statusBadge(status).props.children; }
+    function countBy(items, predicate){ return items.filter(predicate).length; }
+    function reportPreviewUrl(value){
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+      const idMatch = url.match(/[?&]id=([^&#]+)/) || url.match(/\/d\/([^/?#]+)/) || url.match(/\/folders\/([^/?#]+)/);
+      if (/drive\.google\.com/i.test(url) && idMatch?.[1]) return `https://drive.google.com/file/d/${encodeURIComponent(decodeURIComponent(idMatch[1]))}/preview`;
+      if (/docs\.google\.com\/document\/d\//i.test(url)) return url.replace(/\/edit.*$/,'/preview');
+      if (/docs\.google\.com\/spreadsheets\/d\//i.test(url)) return url.replace(/\/edit.*$/,'/preview');
+      return url;
+    }
+    function reportDownloadUrl(value){
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+      const idMatch = url.match(/[?&]id=([^&#]+)/) || url.match(/\/d\/([^/?#]+)/);
+      if (/drive\.google\.com/i.test(url) && idMatch?.[1]) return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(decodeURIComponent(idMatch[1]))}`;
+      return url;
+    }
+    const REPORT_URL_KEYS = ['reportUrl','LinkBC','Link BC','Link báo cáo','Link Bao cao','Link BCpdf','Liên kết báo cáo','url','link'];
+    function groupCode(value){
+      const text = norm(value);
+      if (text.includes('linh')) return 'linh';
+      if (text.includes('hieu') || text.includes('hiếu')) return 'hieu';
+      return '';
+    }
+    function normalizeGroupAssignments(json){
+      return deepRows(json).map(row => {
+        const person = String(get(row, [
+          'Tên nhân viên','Ten nhan vien','Tên NV','Ten NV',
+          'Người lập','Nguoi lap','Người lập báo cáo','Họ tên','Ho ten','Tên','Ten','Nhân sự','Nhan su','PIC','Name'
+        ]) || '').trim();
+        const teamText = String(get(row, ['Thuộc','Thuoc','Thuộc nhóm','Thuoc nhom','Nhóm trưởng','Nhom truong']) || '').trim();
+        const group = groupCode(teamText);
+        const unit = String(get(row, ['Group','Nhóm','Nhom','Team']) || '').trim();
+        return { person, group, unit };
+      }).filter(row => row.person && row.group);
+    }
+    function groupOptionsFromAssignments(assignments, lockedGroup){
+      const list = Array.isArray(assignments) ? assignments : [];
+      const linhCount = list.filter(x => x.group === 'linh').length;
+      const hieuCount = list.filter(x => x.group === 'hieu').length;
+      const linhLabel = linhCount ? `Nhóm Linh (${linhCount})` : 'Nhóm Linh';
+      const hieuLabel = hieuCount ? `Nhóm Hiếu (${hieuCount})` : 'Nhóm Hiếu';
+      if (lockedGroup === 'linh') return [{ value: 'linh', label: linhLabel }];
+      if (lockedGroup === 'hieu') return [{ value: 'hieu', label: hieuLabel }];
+      return [
+        { value: 'all', label: 'Tất cả nhóm' },
+        { value: 'linh', label: linhLabel },
+        { value: 'hieu', label: hieuLabel }
+      ];
+    }
+    function isInGroup(name, group, assignments){
+      if (group === 'all') return true;
+      if (!Array.isArray(assignments)) return false;
+      const matched = assignments.find(item => norm(item.person) === norm(name));
+      return matched ? matched.group === group : false;
+    }
+    function groupForUser(user){
+      const key = norm(user?.username || user?.team || user?.name || '');
+      if (key.includes('linh')) return 'linh';
+      if (key.includes('hieu') || key.includes('hiếu')) return 'hieu';
+      return 'all';
+    }
+    function normalizeDashboardSummary(json){
+      const rows = deepRows(json).filter(x => x && typeof x === 'object');
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonthKey = `${currentYear}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      const monthRows = rows
+        .map(row => {
+          const monthKey = String(get(row, ['Tháng','month','thang','label']) || '').trim();
+          const year = Number(get(row, ['Năm','year']) || monthKey.slice(0,4) || currentYear);
+          const monthNumber = Number(monthKey.match(/-(\d{1,2})$/)?.[1] || get(row, ['monthNumber','monthIndex']) || 0);
+          const rawTasks = get(row, ['Số tác vụ','soTacVu','tasks','value','count','total']);
+          return {
+            monthKey,
+            year,
+            monthNumber,
+            label: monthNumber ? `T${monthNumber}` : monthKey,
+            tasks: rawTasks === '' ? null : toNumber(rawTasks),
+            workHours: firstNumber(row, ['Số giờ công','soGioCong','workHours']),
+            people: firstNumber(row, ['Số nhân sự','soNhanSu','people','headcount']),
+            overtime: firstNumber(row, ['Số giờ tăng ca','soGioTangCa','overtime'])
+          };
+        })
+        .filter(row => row.monthKey)
+        .sort((a,b)=>String(a.monthKey).localeCompare(String(b.monthKey)));
+      const yearRows = monthRows.some(row => row.year === currentYear) ? monthRows.filter(row => row.year === currentYear) : monthRows;
+      const dataRows = yearRows
+        .filter(row => row.tasks !== null)
+        .filter(row => {
+          const m = Number(String(row.monthKey).match(/-(\d{1,2})$/)?.[1] || row.monthNumber || 0);
+          return row.year === 2026 ? m >= 1 && m <= 5 : true;
+        });
+      const currentRow = yearRows.find(row => row.monthKey === currentMonthKey && row.tasks !== null) || dataRows[dataRows.length - 1] || yearRows[yearRows.length - 1] || {};
+      const months = dataRows.map(row => ({
+        monthKey: row.monthKey,
+        label: row.label,
+        tasks: row.tasks ?? 0,
+        workHours: row.workHours ?? 0,
+        people: row.people ?? 0,
+        overtime: row.overtime ?? 0
+      }));
+      return {
+        received: currentRow.tasks || 0,
+        workHours: currentRow.workHours || 0,
+        people: currentRow.people || 0,
+        overtime: currentRow.overtime || 0,
+        currentLabel: currentRow.monthKey || currentMonthKey,
+        months
+      };
+    }
+    function boolMark(value){
+      if (value === true || value === 1) return true;
+      const s = String(value ?? '').trim().toLowerCase();
+      return ['x','1','yes','có','co','true'].includes(s);
+    }
+    function normalizeSpmOverview(json){
+      const rows = deepRows(json).filter(x => x && typeof x === 'object');
+      const activeRows = rows.filter(row => boolMark(get(row, ['KRD đang triển khai','krd','KRD'])));
+      const dqaRows = rows.filter(row => boolMark(get(row, ['DQA đang triển khai','dqa','DQA'])));
+      const byLevel = ['L1','L2','L3'].reduce((acc, level) => {
+        acc[level] = activeRows.filter(row => String(get(row, ['Cấp độ','cap','level']) || '').trim().toUpperCase() === level).length;
+        return acc;
+      }, {});
+      const dqaDoing = dqaRows.filter(row => norm(get(row, ['Đang đánh giá','dd','dangDanhGia'])).includes('doing')).length;
+      const dqaOk = dqaRows.filter(row => String(get(row, ['KQ ĐG OK','ok']) || '').trim().toUpperCase() === 'OK').length;
+      const dqaNg = dqaRows.filter(row => String(get(row, ['KQ ĐG NG','ng']) || '').trim().toUpperCase() === 'NG').length;
+      const totalErrors = dqaRows.reduce((sum,row)=>sum + firstNumber(row, ['Tổng lỗi','tongLoi','totalErrors']), 0);
+      const fixedErrors = dqaRows.reduce((sum,row)=>sum + firstNumber(row, ['Số lượng  cải tiến lỗi đánh giá LK + SP','Số lượng cải tiến lỗi đánh giá LK + SP','slCaiTien','fixedErrors']), 0);
+      const fmeaDone = dqaRows.reduce((sum,row)=>sum + firstNumber(row, ['Hạng mục FMEA rà soát bổ sung','hmFmea']), 0);
+      const fmeaTotal = dqaRows.reduce((sum,row)=>sum + firstNumber(row, ['Tổng hạng mục rà soát FMEA','tongHmFmea']), 0);
+      const active = activeRows.length;
+      const dqaTotal = dqaRows.length;
+      return {
+        active,
+        dqaTotal,
+        byLevel,
+        dqaDoing,
+        dqaOk,
+        dqaNg,
+        fixedErrors,
+        totalErrors,
+        fmeaDone,
+        fmeaTotal,
+        fixRate: totalErrors ? fixedErrors / totalErrors : 0,
+        fmeaRate: fmeaTotal ? fmeaDone / fmeaTotal : 0
+      };
+    }
+
+    function monthLabelFromKey(monthKey){
+      const m = Number(String(monthKey || '').match(/-(\d{1,2})$/)?.[1] || 0);
+      return m ? `T${m}` : String(monthKey || '');
+    }
+    function parseOnboardFlag(raw){
+      if (raw === null || raw === undefined || raw === '') return null;
+      const v = String(raw).trim().toLowerCase();
+      if (!v || v === 'null') return null;
+      if (v === 'yes' || v === 'có' || v === 'co' || v === 'true' || v === '1') return true;
+      if (v === 'no' || v === 'không' || v === 'khong' || v === 'false' || v === '0') return false;
+      return null;
+    }
+    function isOnboardMetaRow(row){
+      const monthKey = String(get(row, ['Tháng','month','thang']) || '').trim();
+      if (monthKey) return false;
+      const ten = String(get(row, ['Tên nhân viên','Ten nhan vien','tenNhanVien']) || '').trim();
+      return Boolean(ten) || get(row, ['Onboard','onboard']) !== undefined;
+    }
+    function normalizeOvertimeByPerson(json){
+      const rows = deepRows(json).filter(x => x && typeof x === 'object');
+      const onboardMap = new Map();
+      rows.filter(isOnboardMetaRow).forEach(row => {
+        const name = String(get(row, ['Tên nhân viên','Ten nhan vien','tenNhanVien','Nhân sự','name']) || '').trim();
+        if (!name) return;
+        onboardMap.set(norm(name), parseOnboardFlag(get(row, ['Onboard','onboard'])));
+      });
+      return rows
+        .filter(row => !isOnboardMetaRow(row))
+        .map(row => {
+          const monthKey = String(get(row, ['Tháng','month','thang']) || '').trim();
+          const monthNumber = Number(monthKey.match(/-(\d{1,2})$/)?.[1] || 0);
+          const name = String(get(row, ['Nhân sự','Nhan su','nhanSu','name']) || '').trim();
+          return {
+            monthKey,
+            year: String(get(row, ['Năm','year','nam']) || monthKey.slice(0,4) || '').trim(),
+            name,
+            hours: firstNumber(row, ['Số giờ tăng ca','soGioTangCa','overtime','hours']),
+            label: monthNumber ? `T${monthNumber}` : monthKey,
+            onboard: onboardMap.has(norm(name)) ? onboardMap.get(norm(name)) : null
+          };
+        })
+        .filter(row => row.monthKey && row.name)
+        .sort((a,b) => String(a.monthKey).localeCompare(String(b.monthKey)) || a.name.localeCompare(b.name, 'vi'));
+    }
+    function OnboardBadge({value}){
+      if (value === true) return <span className="pill bg-emerald-50 text-emerald-800 border-emerald-200">Có</span>;
+      if (value === false) return <span className="pill bg-slate-100 text-slate-600 border-slate-200">Không</span>;
+      return <span className="text-slate-400">—</span>;
+    }
+
+    async function api(path, options={}){
+      const r = await fetch(path, {cache:'no-store', credentials:'same-origin', ...options});
+      const text = await r.text();
+      let parsed = null;
+      try { parsed = JSON.parse(text); } catch {}
+      if (!r.ok) {
+        const htmlErr = /<!DOCTYPE|<html/i.test(text);
+        const msg = parsed?.error || (htmlErr
+          ? `API Node chưa hoạt động (HTTP ${r.status}). Trên server cần bật ứng dụng Node.js và kiểm tra ${path.startsWith('/') ? path : '/api/health'} — thử mở /api/health phải trả {"ok":true}.`
+          : (text && text.length < 280 ? text : `HTTP ${r.status}`));
+        throw new Error(msg);
+      }
+      return parsed ?? text;
+    }
+    async function postForm(path, params){
+      return api(path, {
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:new URLSearchParams(params).toString()
+      });
+    }
+
+    function ToastHost({items, onDismiss}){
+      return (
+        <div className="toast-wrap" aria-live="polite" aria-relevant="additions">
+          {items.map(t => (
+            <div className="toast" key={t.id} role="status">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="t truncate">{t.title}</div>
+                  {t.detail ? <div className="d">{t.detail}</div> : null}
+                </div>
+                <button className="btn btn-sm btn-ghost" onClick={()=>onDismiss(t.id)} aria-label="Đóng thông báo">Đóng</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function Modal({open, title, children, footer, onClose}){
+      if (!open) return null;
+      return (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className={`modal ${title === 'Xem báo cáo' ? 'preview-modal' : ''}`}>
+            <div className="modal-h">
+              <div className="font-extrabold text-slate-950">{title}</div>
+              <button className="btn btn-sm btn-ghost" onClick={onClose}>Đóng</button>
+            </div>
+            <div className="modal-b">{children}</div>
+            {footer ? <div className="modal-f">{footer}</div> : null}
+          </div>
+        </div>
+      );
+    }
+
+    function TableSkeleton({kind='report', rows=8, visible=true, transitionMs=260}){
+      if (!visible) return null;
+      const defs = kind === 'form'
+        ? [
+            ['skel-chip', 1], ['skel-chip', 1], ['skel-line', 1], ['skel-line', 1], ['skel-chip', 1], ['skel-line', 1], ['skel-chip', 1], ['skel-line', 1]
+          ]
+        : [
+            ['skel-chip', 1], ['skel-chip', 1], ['skel-line', 1], ['skel-line', 1], ['skel-line', 1], ['skel-line', 1], ['skel-chip', 1], ['skel-line', 1], ['skel-line', 1]
+          ];
+      return (
+        <div
+          className="relative border-t border-[var(--line)]"
+          style={{
+            opacity: 1,
+            transition: `opacity ${transitionMs}ms ease-out`,
+            pointerEvents: 'auto'
+          }}
+          aria-hidden="false"
+        >
+          {Array.from({length: rows}).map((_,i)=>(
+            <div key={i} className="skel-row">
+              <div className="skel skel-soft skel-cell" />
+              {defs.map((d,idx)=>(
+                <div key={idx} className={`skel skel-soft ${d[0]}`} />
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function normalizeLeaderReport(row){
+      const src = unwrapReportRow(row);
+      const pic = get(src, ['picspm','PICSPM']);
+      const reporter = pic && /[a-zA-ZÀ-ỹ]/.test(String(pic)) ? pic : get(src, ['assignee','Assignee','reporter','Người lập']);
+      const statusRaw = get(src, ['status','trạng thái','Kết quả','kết quả']);
+      const conclusion = String(get(src, ['Kết luận trang bìa','conclusion','Kết luận','ket_luan']) || '');
+      const changePointsBC = pickChangePointsBC(src);
+      const note = changePointsBC || pickReportNote(src, conclusion);
+      return {
+        id: String(get(src, ['id','ID','Id','reportId','Mã tác vụ','Mã báo cáo']) || ''),
+        code: String(get(src, ['code','Mã báo cáo','Mã tác vụ','taskcode','reportCode']) || ''),
+        title: String(get(src, ['title','Tiêu đề','Task Name','tên tác vụ','name']) || ''),
+        reporter: String(reporter || ''),
+        email: String(get(src, ['email','reporterEmail','Email']) || ''),
+        submitDate: String(get(src, ['submitDate','Ngày nộp','Ngày cập nhật gần nhất']) || ''),
+        wishDate: String(get(src, ['wishDate','Hạn mong muốn']) || ''),
+        conclusion,
+        changePointsBC,
+        note,
+        leaderNote: String(get(src, ['Nhận xét trưởng nhóm','TNcomment','Ghi chú trưởng nhóm']) || ''),
+        reportUrl: String(get(src, REPORT_URL_KEYS) || ''),
+        status: statusCode(statusRaw, 'Pending1'),
+        raw: row
+      };
+    }
+    function normalizeManagerReport(row, kind='DQA'){
+      const src = unwrapReportRow(row);
+      const fallback = kind === 'NCTN' ? 'Pending1' : 'Pending';
+      const conclusion = String(get(src, ['Kết luận trang bìa','conclusion','Kết luận','ket_luan']) || '');
+      const changePointsBC = pickChangePointsBC(src);
+      return {
+        id: String(get(src, ['id','ID','Id','Mã tác vụ','Mã báo cáo']) || ''),
+        code: String(get(src, ['code','Mã báo cáo','Mã tác vụ','taskcode']) || ''),
+        title: String(get(src, ['title','Tiêu đề','Task Name','tên tác vụ','Nội dung']) || ''),
+        reporter: String(get(src, ['reporter','Người lập','assignee','PICSPM','Người thực hiện']) || ''),
+        submitDate: String(get(src, [
+          'submitDate','Ngày nộp','Ngày cập nhật gần nhất','Ngày gửi',
+          'Ngày phê duyệt trưởng nhóm','Ngày hoàn thành thực tế','Ngày yêu cầu của các bên'
+        ]) || ''),
+        wishDate: String(get(src, ['wishDate','Hạn mong muốn','Hạn mong muốn của các bên','Deadline']) || ''),
+        conclusion,
+        changePointsBC,
+        note: changePointsBC || pickReportNote(src, conclusion),
+        leaderNote: String(get(src, ['Nhận xét trưởng nhóm','TNcomment','Ghi chú trưởng nhóm']) || ''),
+        picNote: String(get(src, ['Nhận xét PIC','PICcomment']) || ''),
+        reportUrl: String(get(src, REPORT_URL_KEYS) || ''),
+        status: statusCode(get(src, ['status','trạng thái','Kết quả','kết quả']), fallback),
+        kind,
+        raw: row
+      };
+    }
+    function formatReportNote(it){
+      const base = String(it?.changePointsBC || it?.note || '').trim();
+      const pic = String(it?.picNote || '').trim();
+      if (!base) return pic;
+      if (!pic || pic === base) return base;
+      return [base, pic].join(' · ');
+    }
+
+    function normalizePdForm(row){
+      return {
+        id: String(get(row, ['id','ID','Id']) || ''),
+        taskName: String(get(row, ['TaskItemName','taskitemname','Tên tác vụ','SubtaskName']) || ''),
+        taskCode: String(get(row, ['TaskItemCode','taskitemcode','Mã']) || ''),
+        subtaskCode: String(get(row, ['Subtaskcode','subtaskcode','Mã tác vụ']) || ''),
+        pic: String(get(row, ['TaskPIC','taskpic','SubtaskPIC','subtaskpic','PIC']) || ''),
+        sentTime: String(get(row, ['Subtasktimesend','subtasktimesend','Thời gian gửi']) || ''),
+        formLink: String(get(row, ['Subtaskformlink','subtaskformlink','Form báo cáo']) || ''),
+        status: String(get(row, ['Subtaskstatus','subtaskstatus','Kết quả']) || ''),
+        type: String(get(row, ['type','Type']) || ''),
+        raw: row
+      };
+    }
+
+    function Login({onLogin}){
+      const [username,setUsername]=useState('');
+      const [password,setPassword]=useState('');
+      const [error,setError]=useState('');
+      const [loading,setLoading]=useState(false);
+      async function submit(e){
+        e.preventDefault(); setError(''); setLoading(true);
+        try{
+          const data = await api('/api/login', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({username,password})
+          });
+          onLogin(data.user);
+        }catch(ex){ setError(ex.message || 'Đăng nhập thất bại'); }
+        finally{ setLoading(false); }
+      }
+      return <div className="min-h-screen grid lg:grid-cols-[1.05fr_.95fr]">
+        <section className="p-8 lg:p-12 flex flex-col justify-between">
+          <div></div>
+          <div className="max-w-2xl py-16"><h1 className="text-4xl lg:text-6xl font-extrabold tracking-tight mb-5">Phần mềm quản lý DQA</h1><p className="text-slate-600 text-lg">Dành cho cấp quản lý của phòng DQA</p></div>
+          <div className="grid grid-cols-3 gap-3 text-sm text-slate-600"><div className="info-tile blue"><b className="text-slate-950">Account</b><br/>Đăng nhập</div><div className="info-tile green"><b className="text-slate-950">Role</b><br/>Phân quyền</div><div className="info-tile yellow"><b className="text-slate-950">Proxy</b><br/>Node API</div></div>
+        </section>
+        <section className="p-6 grid place-items-center">
+          <form onSubmit={submit} className="card w-full max-w-sm p-6">
+            <h2 className="text-2xl font-extrabold mb-1">Đăng nhập</h2>
+            <p className="text-sm text-slate-500 mb-5">Đăng nhập bằng tài khoản được cấp.</p>
+            <label className="text-sm font-bold">Tài khoản</label>
+            <input className="field w-full mt-1 mb-3" value={username} onChange={e=>setUsername(e.target.value)} placeholder="Nhập tài khoản" autoComplete="username" />
+            <label className="text-sm font-bold">Mật khẩu</label>
+            <input className="field w-full mt-1 mb-4" type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Nhập mật khẩu" autoComplete="current-password" />
+            <button className="btn btn-primary w-full" disabled={loading}>{loading ? <span className="spinner"></span> : 'Đăng nhập'}</button>
+            {error && <div className="text-sm text-red-600 mt-3">{error}</div>}
+          </form>
+        </section>
+      </div>;
+    }
+
+    const HR_TOOLS = [
+      { pageId: 'hr-form4', embed: 'form5', view: 'form4', title: 'Timeline kế hoạch công việc', desc: '', backTo: 'tasks' },
+      { pageId: 'hr-form5', embed: 'form5', view: 'form5', title: 'KPI nhóm SOP', desc: '', backTo: 'tasks' },
+      { pageId: 'hr-c2form12', embed: 'c2', c2Target: 'form12', title: 'Tỷ lệ hoàn thành CV · SPM', desc: '', backTo: 'tasks' }
+    ];
+    const SPM_DASHBOARD = { pageId: 'hr-c2form10', embed: 'c2', c2Target: 'form10', title: 'Dashboard SPM 2026', desc: 'C2 · Form 10 · KRD & DQA', backTo: 'dashboard' };
+    const HR_EMBED_PAGES = [...HR_TOOLS];
+    const hrEmbedByPage = (id) => HR_EMBED_PAGES.find(t => t.pageId === id);
+
+    const hrEmbedSrc = (tool) => tool.embed === 'c2'
+      ? `/c2/Cong-2.html?embed=1&target=${encodeURIComponent(tool.c2Target)}`
+      : `/form5?view=${encodeURIComponent(tool.view)}&embed=1`;
+
+    function HrEmbedPanel({tool}){
+      if (!tool) return null;
+      return <iframe className="hr-tool-frame embed-fill" src={hrEmbedSrc(tool)} title={tool.title} loading="lazy"/>;
+    }
+
+    function Layout({user,onLogout}){
+      const canManager = ['Admin','Trưởng phòng'].includes(user.role);
+      const canLeader = user.role === 'Admin' || user.role === 'Trưởng nhóm';
+      const [page,setPage]=useState(() => canLeader ? 'quick-leader' : canManager ? 'quick-manager' : 'dashboard');
+      const navSections = [
+        { label: 'Nhanh', items: [
+          ...(canLeader ? [{ id: 'quick-leader', title: 'Duyệt nhanh TN' }] : []),
+          ...(canLeader ? [{ id: 'quick-form', title: 'Duyệt nhanh form' }] : []),
+          ...(canManager ? [{ id: 'quick-manager', title: 'Duyệt nhanh DQA' }] : []),
+          ...(canManager ? [{ id: 'quick-nctn', title: 'Duyệt nhanh NCTN' }] : [])
+        ]},
+        { label: 'Tổng quan', items: [
+          { id: 'dashboard', title: 'Tổng quan' },
+          { id: 'tasks', title: 'Hiệu suất nhân sự' }
+        ]},
+        { label: 'Phê duyệt · Trưởng nhóm', items: canLeader ? [
+          { id: 'leader-reports', title: 'Báo cáo' },
+          { id: 'leader-forms', title: 'Form' }
+        ] : []},
+        { label: 'Phê duyệt · Trưởng phòng', items: canManager ? [
+          { id: 'manager-dqa', title: 'Báo cáo DQA' },
+          { id: 'manager-nctn', title: 'Báo cáo NCTN' }
+        ] : []}
+      ].filter(sec => sec.items.length);
+      const flatNav = navSections.flatMap(sec => sec.items);
+      const activeEmbed = page === SPM_DASHBOARD.pageId ? SPM_DASHBOARD : hrEmbedByPage(page);
+      const isFullBleedEmbed = !!activeEmbed;
+      const hrToolTitle = activeEmbed?.title;
+      const pageTitle = hrToolTitle || flatNav.find(x => x.id === page)?.title || 'DQA TaskHub';
+      useEffect(()=>{
+        const okNav = flatNav.some(x => x.id === page) || HR_EMBED_PAGES.some(t => t.pageId === page) || page === SPM_DASHBOARD.pageId;
+        if (!okNav) setPage(flatNav[0]?.id || 'dashboard');
+      },[user.role]);
+      return <div className="app-shell min-h-screen">
+        <header className="global-nav">
+          <button type="button" className="global-brand" title="Về trang đầu tiên" onClick={() => setPage(flatNav[0]?.id || 'dashboard')}>
+            <div className="brand-mark h-9 w-9 grid place-items-center font-extrabold">D</div>
+          </button>
+          <nav className="global-menu" aria-label="Điều hướng chính">
+            {navSections.map(sec => <div className="global-menu-group" key={sec.label}>
+              {sec.items.map(item => item.external ? (
+                <a key={item.id} href={item.href} className="nav-btn" rel="noopener">
+                  {item.title}<span className="nav-ext" aria-hidden="true">↗</span>
+                </a>
+              ) : (
+                <button key={item.id} type="button" onClick={()=>setPage(item.id)} className={`nav-btn ${page===item.id?'active':''}`}>{item.title}</button>
+              ))}
+            </div>)}
+          </nav>
+          <div className="global-actions">
+            <div className="user-chip" title={`${user.name} · ${user.role} · ${user.team}`}>
+              <b>{user.name}</b>
+              <span>{user.role} · {user.team}</span>
+            </div>
+            <button className="btn btn-ghost shrink-0" onClick={onLogout}>Đăng xuất</button>
+          </div>
+        </header>
+        <main className="min-w-0">
+          {activeEmbed?.backTo && (
+            <header className="topbar topbar-embed flex items-center gap-3">
+              <button type="button" className="btn btn-ghost text-sm shrink-0" onClick={() => setPage(activeEmbed.backTo)}>← Quay lại</button>
+              <div className="min-w-0">
+                <h1 className="text-base font-bold tracking-tight truncate">{pageTitle}</h1>
+              </div>
+            </header>
+          )}
+          <div className={isFullBleedEmbed ? 'main-body-embed' : 'main-body p-4 lg:p-6'}>
+            {page==='dashboard' && <Dashboard user={user} onNavigate={setPage}/>}
+            {page==='tasks' && <TaskBoard onNavigate={setPage}/>}
+            {page === SPM_DASHBOARD.pageId && <HrEmbedPanel tool={SPM_DASHBOARD}/>}
+            {hrEmbedByPage(page) && <HrEmbedPanel tool={hrEmbedByPage(page)}/>}
+            {page==='leader-reports' && canLeader && <LeaderReportApproval user={user}/>}
+            {page==='leader-forms' && canLeader && <LeaderFormApproval user={user}/>}
+            {page==='manager-dqa' && canManager && <ManagerDqaApproval user={user}/>}
+            {page==='manager-nctn' && canManager && <ManagerNctnApproval user={user}/>}
+            {page==='users' && user.role === 'Admin' && <Users/>}
+            {page==='quick-leader' && canLeader && <QuickApproval user={user} canLeader={canLeader} canManager={false} mode="leader"/>}
+            {page==='quick-form' && canLeader && <QuickFormApproval user={user}/>}
+            {page==='quick-manager' && canManager && <QuickApproval user={user} canLeader={false} canManager={canManager} mode="manager"/>}
+            {page==='quick-nctn' && canManager && <QuickApproval user={user} canLeader={false} canManager={canManager} mode="nctn"/>}
+            {page==='settings' && <Settings/>}
+          </div>
+        </main>
+      </div>;
+    }
+
+    function Dashboard({user, onNavigate}){
+      const [summary,setSummary]=useState({received:0,workHours:0,people:0,overtime:0,currentLabel:'',months:[]});
+      const [spm,setSpm]=useState({active:0,dqaTotal:0,byLevel:{L1:0,L2:0,L3:0},dqaDoing:0,dqaOk:0,dqaNg:0,fixedErrors:0,totalErrors:0,fmeaDone:0,fmeaTotal:0,fixRate:0,fmeaRate:0});
+      const [loading,setLoading]=useState(true);
+      const [spmLoading,setSpmLoading]=useState(true);
+      const [error,setError]=useState('');
+      useEffect(()=>{
+        let alive = true;
+        async function loadDashboard(){
+          setLoading(true); setSpmLoading(true); setError('');
+          try{
+            const params = new URLSearchParams({
+              reviewer: user?.username || '',
+              role: user?.role || '',
+              team: user?.team || '',
+              group: groupForUser(user),
+              _ts: Date.now()
+            });
+            const [dashboardResult, spmResult] = await Promise.allSettled([
+              api(`/api/dashboard?${params.toString()}`),
+              api(`/api/form10/spm-data?_ts=${Date.now()}`)
+            ]);
+            if (!alive) return;
+            if (dashboardResult.status === 'fulfilled') setSummary(normalizeDashboardSummary(dashboardResult.value));
+            else setError(dashboardResult.reason?.message || 'Không tải được dữ liệu tổng quan');
+            if (spmResult.status === 'fulfilled') setSpm(normalizeSpmOverview(spmResult.value));
+          }catch(ex){
+            if (alive) setError(ex.message || 'Không tải được dữ liệu tổng quan');
+          }finally{
+            if (alive) { setLoading(false); setSpmLoading(false); }
+          }
+        }
+        loadDashboard();
+        return ()=>{ alive = false; };
+      },[user?.username, user?.role, user?.team]);
+      const chartRows = summary.months.length ? summary.months : Array.from({length:5}).map((_,idx)=>({
+        monthKey:`2026-${String(idx+1).padStart(2,'0')}`,
+        label:`T${idx+1}`,
+        tasks:0, workHours:0, people:0, overtime:0
+      }));
+      const latest = chartRows[chartRows.length - 1] || {};
+      const previous = chartRows[chartRows.length - 2] || {};
+      const deltaTasks = (Number(latest.tasks) || 0) - (Number(previous.tasks) || 0);
+      const peak = chartRows.reduce((best,row)=>((Number(row.tasks)||0) > (Number(best.tasks)||0) ? row : best), chartRows[0] || {});
+      const productivity = summary.people ? (summary.received / summary.people) : 0;
+      const fmt = (n) => Number(n || 0).toLocaleString('vi-VN', { maximumFractionDigits: 1 });
+      const deltaText = deltaTasks > 0 ? `tăng ${fmt(deltaTasks)} tác vụ so với tháng trước` : deltaTasks < 0 ? `giảm ${fmt(Math.abs(deltaTasks))} tác vụ so với tháng trước` : 'không đổi so với tháng trước';
+      return <div className="grid gap-4">
+        <section className="story-hero p-5 lg:p-6">
+          <div className="grid lg:grid-cols-[1.15fr_.85fr] gap-5 items-end relative z-[1]">
+            <div>
+              <div className="story-kicker">Tổng quan vận hành DQA</div>
+              <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight mt-2">Tháng {summary.currentLabel || 'hiện tại'} đã nhận <span className="text-sky-600">{loading ? '...' : fmt(summary.received)}</span> tác vụ.</h2>
+              <p className="text-slate-600 mt-3 max-w-3xl">Khối lượng xử lý đang {loading ? 'được cập nhật' : deltaText}, với {loading ? '...' : fmt(summary.people)} nhân sự tham gia và {loading ? '...' : fmt(summary.workHours)} giờ công ghi nhận.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="insight-card"><span>Hiệu suất/người</span><b>{loading ? '...' : fmt(productivity)}</b><p className="text-sm text-slate-500 mt-1">tác vụ mỗi nhân sự</p></div>
+              <div className="insight-card"><span>Đỉnh chuỗi</span><b>{loading ? '...' : fmt(peak.tasks)}</b><p className="text-sm text-slate-500 mt-1">{peak.monthKey || 'chưa có dữ liệu'}</p></div>
+            </div>
+          </div>
+        </section>
+        <div className="overview-grid">
+          <div className="card p-5">
+            <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+              <div>
+                <h2 className="font-extrabold text-xl">Dashboard DQA</h2>
+                <p className="text-sm text-slate-500 mt-1">Tác vụ, giờ công, nhân sự và tăng ca theo tháng.</p>
+              </div>
+              {error ? <span className="pill bg-red-50 text-red-700 border-red-200">{error}</span> : null}
+            </div>
+            <TrendChart rows={chartRows} loading={loading} metric="tasks"/>
+          </div>
+          <SpmOverviewPanel
+            data={spm}
+            loading={spmLoading}
+            onOpenFull={onNavigate ? () => onNavigate(SPM_DASHBOARD.pageId) : null}
+          />
+        </div>
+        {user?.role === 'Admin' ? (
+          <div className="card p-5">
+            <h2 className="font-extrabold text-lg mb-3">Tài khoản mặc định</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+              {['admin/admin123','truongphong/tp123','linh/linh123','hieu/hieu123'].map(item => (
+                <div key={item} className="info-tile blue"><b className="text-slate-950">{item.split('/')[0]}</b><br/><span className="text-slate-600">{item.split('/')[1]}</span></div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>;
+    }
+    function SpmOverviewPanel({data, loading=false, onOpenFull}){
+      const fmt = (n) => Number(n || 0).toLocaleString('vi-VN', { maximumFractionDigits: 1 });
+      const pct = (v) => `${Math.round((Number(v) || 0) * 100)}%`;
+      const donut = (ratio, color) => {
+        const radius = 42;
+        const circumference = 2 * Math.PI * radius;
+        const safeRatio = Math.max(0, Math.min(1, Number(ratio) || 0));
+        const dash = safeRatio * circumference;
+        return { radius, circumference, dash, color };
+      };
+      const Donut = ({title, ratio, done, total, color}) => {
+        const d = donut(ratio, color);
+        return <div className="donut-card">
+          <div className="donut-title">{title}</div>
+          <svg className="donut-svg" viewBox="0 0 120 120" role="img" aria-label={`${title} ${pct(ratio)}`}>
+            <circle cx="60" cy="60" r={d.radius} fill="none" stroke="#e7eff8" strokeWidth="14"/>
+            <circle cx="60" cy="60" r={d.radius} fill="none" stroke={d.color} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${d.dash} ${d.circumference - d.dash}`} transform="rotate(-90 60 60)"/>
+            <text x="60" y="57" textAnchor="middle" fontSize="20" fontWeight="900" fill="#0f172a">{loading ? '...' : pct(ratio)}</text>
+            <text x="60" y="76" textAnchor="middle" fontSize="10" fontWeight="700" fill="#64748b">hoàn thành</text>
+          </svg>
+          <div className="donut-value">{loading ? '...' : fmt(done)}</div>
+          <div className="donut-note">{loading ? 'Đang tải...' : `${fmt(done)} / ${fmt(total)}`}</div>
+        </div>;
+      };
+      return <div className="card p-5">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-extrabold text-xl">Dashboard SPM 2026</h2>
+            <p className="text-sm text-slate-500 mt-1">Tổng hợp KRD triển khai và phần DQA tham gia trên cùng trang Tổng quan.</p>
+          </div>
+          {onOpenFull ? (
+            <button type="button" className="btn btn-ghost text-sm shrink-0" onClick={onOpenFull}>
+              Mở dashboard đầy đủ
+            </button>
+          ) : null}
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className="insight-card"><span>KRD active</span><b>{loading ? '...' : fmt(data.active)}</b><p className="text-sm text-slate-500 mt-1">dự án đang triển khai</p></div>
+          <div className="insight-card"><span>DQA tham gia</span><b className="text-violet-700">{loading ? '...' : fmt(data.dqaTotal)}</b><p className="text-sm text-slate-500 mt-1">dự án</p></div>
+        </div>
+        <div className="spm-mini-grid mb-4">
+          {['L1','L2','L3'].map(level => <div className="spm-mini-card" key={level}><div className="label">Cấp {level}</div><div className="value">{loading ? '...' : fmt(data.byLevel?.[level])}</div></div>)}
+        </div>
+        <div className="table-wrap rounded-xl border border-[var(--line)] mb-4">
+          <table className="data-table w-full">
+            <thead><tr><th>Trạng thái DQA</th><th>Số dự án</th></tr></thead>
+            <tbody>
+              <tr><td>Đang đánh giá</td><td><b>{loading ? '...' : fmt(data.dqaDoing)}</b></td></tr>
+              <tr><td>Kết quả OK</td><td><b className="text-emerald-700">{loading ? '...' : fmt(data.dqaOk)}</b></td></tr>
+              <tr><td>Kết quả NG</td><td><b className="text-red-700">{loading ? '...' : fmt(data.dqaNg)}</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div className="donut-grid">
+          <Donut title="Tỷ lệ cải tiến lỗi" ratio={data.fixRate} done={data.fixedErrors} total={data.totalErrors} color="#2563eb"/>
+          <Donut title="Tỷ lệ bổ sung FMEA" ratio={data.fmeaRate} done={data.fmeaDone} total={data.fmeaTotal} color="#16a34a"/>
+        </div>
+      </div>;
+    }
+    function Stat({title,value,tone='blue',note='',active=false,onClick}){
+      const cls = `card stat-card ${tone} p-4${active ? ' active' : ''}`;
+      const inner = <>
+        <div className="text-sm text-slate-500 font-bold">{title}</div>
+        <div className="text-2xl font-extrabold mt-2">{value}</div>
+        {note ? <div className="text-sm text-slate-500 mt-1">{note}</div> : null}
+      </>;
+      if (onClick) return <button type="button" className={cls} onClick={onClick} aria-pressed={active}>{inner}</button>;
+      return <div className={cls}>{inner}</div>;
+    }
+
+    function OvertimeByPersonTable({defaultMonthKey=''}){
+      const [items,setItems]=useState([]);
+      const [loading,setLoading]=useState(true);
+      const [error,setError]=useState('');
+      const [month,setMonth]=useState(defaultMonthKey || 'all');
+      const [q,setQ]=useState('');
+      useEffect(()=>{
+        let alive = true;
+        (async ()=>{
+          setLoading(true); setError('');
+          try{
+            const json = await api(`/api/overtime-by-person?_ts=${Date.now()}`);
+            if (alive) setItems(normalizeOvertimeByPerson(json));
+          }catch(ex){
+            if (alive) setError(ex.message || 'Không tải được bảng giờ tăng ca');
+          }finally{
+            if (alive) setLoading(false);
+          }
+        })();
+        return ()=>{ alive = false; };
+      },[]);
+      useEffect(()=>{
+        if (defaultMonthKey) setMonth(defaultMonthKey);
+      },[defaultMonthKey]);
+      const fmt = (n) => Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 1 });
+      const months = useMemo(()=>{
+        const keys = [...new Set(items.map(r => r.monthKey))].sort();
+        return keys.map(k => ({ value: k, label: `${k} (${monthLabelFromKey(k)})` }));
+      },[items]);
+      const filtered = useMemo(()=>{
+        const query = norm(q);
+        return items.filter(row => {
+          const okM = month === 'all' || row.monthKey === month;
+          const okQ = !query || norm(row.name).includes(query);
+          return okM && okQ;
+        });
+      },[items, month, q]);
+      const totalHours = useMemo(()=>filtered.reduce((s,r)=>s+(Number(r.hours)||0),0),[filtered]);
+      return (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <div className="text-xs font-bold text-slate-500 mb-1">Lọc tháng</div>
+              <select className="field min-w-[200px]" value={month} onChange={e=>setMonth(e.target.value)} disabled={loading}>
+                <option value="all">Tất cả tháng</option>
+                {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <div className="text-xs font-bold text-slate-500 mb-1">Tìm nhân sự</div>
+              <input className="field w-full" placeholder="Nhập tên..." value={q} onChange={e=>setQ(e.target.value)} disabled={loading}/>
+            </div>
+            <div className="text-sm text-slate-600 pb-2 ml-auto">
+              {loading ? 'Đang tải...' : <>Hiển thị <b>{filtered.length}</b> dòng · Tổng <b className="text-red-700">{fmt(totalHours)}</b> giờ</>}
+            </div>
+          </div>
+          {error ? <div className="pill bg-red-50 text-red-700 border-red-200 inline-block">{error}</div> : null}
+          <div className="table-wrap rounded-xl border border-[var(--line)] max-h-[420px] overflow-auto">
+            <table className="data-table w-full">
+              <thead className="sticky top-0 bg-white z-[1]">
+                <tr>
+                  <th className="w-12">#</th>
+                  <th>Tháng</th>
+                  <th>Nhân sự</th>
+                  <th>Onboard</th>
+                  <th className="text-right">Số giờ tăng ca</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? <tr><td colSpan="5" className="text-center text-slate-500 py-8">Đang tải dữ liệu...</td></tr>
+                : !filtered.length ? <tr><td colSpan="5" className="text-center text-slate-500 py-8">Không có dữ liệu phù hợp.</td></tr>
+                : filtered.map((row, idx) => <tr key={`${row.monthKey}-${row.name}`}>
+                  <td className="text-slate-500">{idx + 1}</td>
+                  <td><b>{row.monthKey}</b> <span className="text-slate-500">({row.label})</span></td>
+                  <td>{row.name}</td>
+                  <td><OnboardBadge value={row.onboard}/></td>
+                  <td className={`text-right font-bold ${row.hours > 0 ? 'text-red-700' : 'text-slate-400'}`}>{fmt(row.hours)}</td>
+                </tr>)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    function TrendChart({rows, loading=false, metric='tasks'}){
+      const fmt = (n) => Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 1 });
+      const defaultMonthKey = rows.length ? rows[rows.length - 1].monthKey : '';
+      const chart = metric === 'workHours' ? <WorkHoursChart rows={rows} loading={loading} fmt={fmt}/>
+        : metric === 'people' ? <PeopleHeadcountChart rows={rows} loading={loading} fmt={fmt} embedded/>
+        : metric === 'overtime' ? <OvertimeChart rows={rows} loading={loading} fmt={fmt}/>
+        : <ComboWorkloadChart rows={rows} loading={loading} fmt={fmt}/>;
+      const summaryTable = (
+        <div className="table-wrap rounded-xl border border-[var(--line)]">
+          <table className="data-table w-full">
+            <thead>
+              <tr>
+                <th>Tháng</th>
+                <th>Số tác vụ</th>
+                <th>Số giờ công</th>
+                <th>Số nhân sự</th>
+                <th>Số giờ tăng ca</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(row => <tr key={row.monthKey}>
+                <td><b>{row.monthKey}</b> <span className="text-slate-500">({row.label})</span></td>
+                <td>{fmt(row.tasks)}</td>
+                <td>{fmt(row.workHours)}</td>
+                <td>{fmt(row.people)}</td>
+                <td>{fmt(row.overtime)}</td>
+              </tr>)}
+            </tbody>
+          </table>
+        </div>
+      );
+      const overtimeTable = (
+        <div>
+          <h3 className="text-sm font-extrabold text-slate-800 mb-2">Chi tiết giờ tăng ca theo nhân sự</h3>
+          <OvertimeByPersonTable defaultMonthKey={defaultMonthKey}/>
+        </div>
+      );
+      return <div className="space-y-4">
+        {chart}
+        {metric === 'overtime' ? overtimeTable : summaryTable}
+      </div>;
+    }
+
+
+    function ComboWorkloadChartSvg({rows, loading, fmt}){
+      const w = 720, h = 300, padL = 58, padR = 64, padT = 52, padB = 44;
+      const chartW = w - padL - padR, chartH = h - padT - padB;
+      const n = Math.max(1, rows.length);
+      const slotW = chartW / n;
+      const barW = Math.min(46, slotW * 0.42);
+      const maxTasks = yDomainHeadroom(Math.max(1, ...rows.map(r => Number(r.tasks) || 0)));
+      const maxHours = yDomainHeadroom(Math.max(1, ...rows.map(r => Number(r.workHours) || 0)));
+      const xAt = (i) => padL + i * slotW + slotW / 2;
+      const yTask = (v) => padT + chartH - (v / maxTasks) * chartH;
+      const yBase = padT + chartH;
+      const linePts = rows.map((r, i) => `${xAt(i)},${yTask(Number(r.tasks) || 0)}`).join(' ');
+      return (
+        <div className="overflow-x-auto">
+          <svg viewBox={`0 0 ${w} ${h}`} className="min-w-[680px] w-full" style={{height: h}} role="img" aria-label="Số tác vụ và giờ công theo tháng">
+            <defs>
+              <pattern id="otHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" strokeWidth="3" opacity="0.9"/>
+              </pattern>
+            </defs>
+            {[0,.25,.5,.75,1].map((t, i) => {
+              const y = padT + chartH - t * chartH;
+              return <g key={i}>
+                <line x1={padL} y1={y} x2={w - padR} y2={y} stroke="#e2e8f0" strokeWidth="1"/>
+                <text x={padL - 8} y={y + 4} fill="#64748b" fontSize="10" textAnchor="end">{fmt(Math.round(maxTasks * t))}</text>
+                <text x={w - padR + 8} y={y + 4} fill="#64748b" fontSize="10" textAnchor="start">{fmt(Math.round(maxHours * t))}</text>
+              </g>;
+            })}
+            <line x1={padL} y1={yBase} x2={w - padR} y2={yBase} stroke="#94a3b8" strokeWidth="1.5"/>
+            <text x={14} y={padT + chartH / 2} fill="#2563eb" fontSize="11" fontWeight="700" transform={`rotate(-90 14 ${padT + chartH / 2})`} textAnchor="middle">Số tác vụ</text>
+            <text x={w - 12} y={padT + chartH / 2} fill="#0d9488" fontSize="11" fontWeight="700" transform={`rotate(90 ${w - 12} ${padT + chartH / 2})`} textAnchor="middle">Số giờ công</text>
+            {rows.map((row, i) => {
+              const total = Number(row.workHours) || 0;
+              const ot = Math.min(Number(row.overtime) || 0, total);
+              const reg = Math.max(0, total - ot);
+              const cx = xAt(i);
+              const bx = cx - barW / 2;
+              const hTotal = (total / maxHours) * chartH;
+              const hOt = (ot / maxHours) * chartH;
+              const hReg = hTotal - hOt;
+              const yTop = yBase - hTotal;
+              return <g key={`bar-${row.monthKey || i}`} opacity={loading ? 0.4 : 1}>
+                <rect x={bx} y={yBase - hReg} width={barW} height={Math.max(0, hReg)} rx="4" fill="#7dd3fc"/>
+                {hOt > 0 ? <rect x={bx} y={yTop} width={barW} height={hOt} rx="4" fill="url(#otHatch)" stroke="#ef4444" strokeWidth="1"/> : null}
+                {total > 0 ? <text x={cx} y={yTop - 8} fill="#0f766e" fontSize="10" fontWeight="700" textAnchor="middle">{fmt(total)}</text> : null}
+              </g>;
+            })}
+            <polyline points={linePts} fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            {rows.map((row, i) => {
+              const tasks = Number(row.tasks) || 0;
+              const cx = xAt(i);
+              return <g key={`line-${row.monthKey || i}`} opacity={loading ? 0.4 : 1}>
+                <circle cx={cx} cy={yTask(tasks)} r="6" fill="#fff" stroke="#2563eb" strokeWidth="3"/>
+                <text x={cx} y={yTask(tasks) + 22} fill="#1e40af" fontSize="11" fontWeight="800" textAnchor="middle">{fmt(tasks)}</text>
+              </g>;
+            })}
+            {rows.map((row, i) => <text key={`x-${row.monthKey}`} x={xAt(i)} y={h - 10} fill="#64748b" fontSize="12" fontWeight="700" textAnchor="middle">{row.label}</text>)}
+          </svg>
+        </div>
+      );
+    }
+
+    function PeopleHeadcountChartSvg({rows, loading, fmt, bare=false}){
+      const w = 720, h = bare ? 300 : 170, padL = 58, padR = 28, padT = bare ? 44 : 28, padB = 36;
+      const chartW = w - padL - padR, chartH = h - padT - padB;
+      const n = Math.max(1, rows.length);
+      const slotW = chartW / n;
+      const barW = Math.min(40, slotW * 0.5);
+      const maxPeople = yDomainHeadroom(Math.max(1, ...rows.map(r => Number(r.people) || 0)));
+      const xAt = (i) => padL + i * slotW + slotW / 2;
+      const yBase = padT + chartH;
+      const svg = (
+        <div className="overflow-x-auto">
+          <svg viewBox={`0 0 ${w} ${h}`} className="min-w-[520px] w-full" style={{height: h}} role="img" aria-label="Số nhân sự theo tháng">
+            <line x1={padL} y1={yBase} x2={w - padR} y2={yBase} stroke="#94a3b8" strokeWidth="1.5"/>
+            {[0,.5,1].map((t,i)=>{ const y=yBase-t*chartH; return <g key={i}><line x1={padL} y1={y} x2={w-padR} y2={y} stroke="#e2e8f0"/><text x={padL-8} y={y+4} fill="#64748b" fontSize="10" textAnchor="end">{Math.round(maxPeople*t)}</text></g>; })}
+            {rows.map((row,i)=>{ const val=Number(row.people)||0; const bh=(val/maxPeople)*chartH; const cx=xAt(i); const x=cx-barW/2; const y=yBase-bh;
+              return <g key={row.monthKey||i} opacity={loading?0.4:1}><rect x={x} y={y} width={barW} height={Math.max(2,bh)} rx="6" fill="#8b5cf6"/><text x={cx} y={y-8} fill="#5b21b6" fontSize="10" fontWeight="700" textAnchor="middle">{fmt(val)}</text><text x={cx} y={h-8} fill="#64748b" fontSize="11" fontWeight="700" textAnchor="middle">{row.label}</text></g>;
+            })}
+          </svg>
+        </div>
+      );
+      if (bare) return <div style={{opacity: loading ? 0.45 : 1}}>{svg}</div>;
+      return (
+        <div className="rounded-xl border border-[var(--line)] bg-[#fafcff] p-4">
+          <h3 className="text-sm font-extrabold text-slate-800 mb-2">Số nhân sự theo tháng</h3>
+          {svg}
+        </div>
+      );
+    }
+
+    function WorkHoursChartSvg({rows, loading, fmt}){
+      const w = 720, h = 300, padL = 48, padR = 28, padT = 48, padB = 44;
+      const chartW = w - padL - padR, chartH = h - padT - padB;
+      const n = Math.max(1, rows.length);
+      const slotW = chartW / n;
+      const barW = Math.min(46, slotW * 0.42);
+      const maxHours = yDomainHeadroom(Math.max(1, ...rows.map(r => Number(r.workHours) || 0)));
+      const xAt = (i) => padL + i * slotW + slotW / 2;
+      const yBase = padT + chartH;
+      return (
+        <div className="overflow-x-auto">
+          <svg viewBox={`0 0 ${w} ${h}`} className="min-w-[680px] w-full" style={{height: h}} role="img" aria-label="Số giờ công theo tháng">
+            <defs>
+              <pattern id="otHatchWh" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" strokeWidth="3" opacity="0.9"/>
+              </pattern>
+            </defs>
+            {[0,.25,.5,.75,1].map((t, i) => {
+              const y = padT + chartH - t * chartH;
+              return <g key={i}><line x1={padL} y1={y} x2={w - padR} y2={y} stroke="#e2e8f0"/><text x={padL - 8} y={y + 4} fill="#64748b" fontSize="10" textAnchor="end">{fmt(Math.round(maxHours * t))}</text></g>;
+            })}
+            <line x1={padL} y1={yBase} x2={w - padR} y2={yBase} stroke="#94a3b8" strokeWidth="1.5"/>
+            {rows.map((row, i) => {
+              const total = Number(row.workHours) || 0;
+              const ot = Math.min(Number(row.overtime) || 0, total);
+              const hTotal = (total / maxHours) * chartH;
+              const hOt = (ot / maxHours) * chartH;
+              const hReg = hTotal - hOt;
+              const cx = xAt(i);
+              const bx = cx - barW / 2;
+              const yTop = yBase - hTotal;
+              return <g key={row.monthKey || i} opacity={loading ? 0.4 : 1}>
+                <rect x={bx} y={yBase - hReg} width={barW} height={Math.max(0, hReg)} rx="4" fill="#7dd3fc"/>
+                {hOt > 0 ? <rect x={bx} y={yTop} width={barW} height={hOt} rx="4" fill="url(#otHatchWh)" stroke="#ef4444" strokeWidth="1"/> : null}
+                {total > 0 ? <text x={cx} y={yTop - 8} fill="#0f766e" fontSize="10" fontWeight="700" textAnchor="middle">{fmt(total)}</text> : null}
+                <text x={cx} y={h - 10} fill="#64748b" fontSize="12" fontWeight="700" textAnchor="middle">{row.label}</text>
+              </g>;
+            })}
+          </svg>
+        </div>
+      );
+    }
+
+    function OvertimeChartSvg({rows, loading, fmt}){
+      const w = 720, h = 280, padL = 48, padR = 28, padT = 44, padB = 40;
+      const chartW = w - padL - padR, chartH = h - padT - padB;
+      const n = Math.max(1, rows.length);
+      const slotW = chartW / n;
+      const barW = Math.min(44, slotW * 0.45);
+      const maxOt = yDomainHeadroom(Math.max(1, ...rows.map(r => Number(r.overtime) || 0)));
+      const xAt = (i) => padL + i * slotW + slotW / 2;
+      const yBase = padT + chartH;
+      return (
+        <div className="overflow-x-auto">
+          <svg viewBox={`0 0 ${w} ${h}`} className="min-w-[680px] w-full" style={{height: h}} role="img" aria-label="Số giờ tăng ca theo tháng">
+            <defs>
+              <pattern id="otHatchOt" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" strokeWidth="3" opacity="0.9"/>
+              </pattern>
+            </defs>
+            {[0,.5,1].map((t,i)=>{ const y=yBase-t*chartH; return <g key={i}><line x1={padL} y1={y} x2={w-padR} y2={y} stroke="#e2e8f0"/><text x={padL-8} y={y+4} fill="#64748b" fontSize="10" textAnchor="end">{fmt(Math.round(maxOt*t))}</text></g>; })}
+            <line x1={padL} y1={yBase} x2={w-padR} y2={yBase} stroke="#94a3b8" strokeWidth="1.5"/>
+            {rows.map((row,i)=>{ const val=Number(row.overtime)||0; const bh=(val/maxOt)*chartH; const cx=xAt(i); const x=cx-barW/2; const y=yBase-bh;
+              return <g key={row.monthKey||i} opacity={loading?0.4:1}><rect x={x} y={y} width={barW} height={Math.max(2,bh)} rx="6" fill="url(#otHatchOt)" stroke="#ef4444" strokeWidth="1"/><text x={cx} y={y-8} fill="#b91c1c" fontSize="10" fontWeight="700" textAnchor="middle">{fmt(val)}</text><text x={cx} y={h-8} fill="#64748b" fontSize="12" fontWeight="700" textAnchor="middle">{row.label}</text></g>;
+            })}
+          </svg>
+        </div>
+      );
+    }
+
+    function WorkHoursChart({rows, loading, fmt}){
+      const data = useMemo(() => toChartRows(rows), [rows]);
+      if (!hasRecharts) return <WorkHoursChartSvg rows={rows} loading={loading} fmt={fmt}/>;
+      const tickFmt = (v) => Number(v).toLocaleString('vi-VN');
+      return (
+        <div className="w-full" style={{opacity: loading ? 0.45 : 1}}>
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={data} margin={CHART_MARGIN}>
+              <defs>
+                <pattern id="otHatchWh" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" strokeWidth="3" opacity="0.9"/>
+                </pattern>
+              </defs>
+              <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" vertical={false}/>
+              <XAxis dataKey="label" tick={{fill:'#64748b', fontSize:12, fontWeight:700}} axisLine={{stroke:'#94a3b8'}}/>
+              <YAxis tickFormatter={tickFmt} domain={[0, yDomainHeadroom(Math.max(...data.map(d => d.workHours || 0), 1))]} tick={{fill:'#0d9488', fontSize:11}} axisLine={false} tickLine={false} label={{value:'Số giờ công', angle:-90, position:'insideLeft', fill:'#0d9488', fontSize:11, fontWeight:700}}/>
+              <Tooltip formatter={(v, name) => [tickFmt(v), name === 'overtime' ? 'Tăng ca' : 'Giờ thường']} labelFormatter={(l, p) => `${l} · ${p?.[0]?.payload?.monthKey || ''}`}/>
+              <Legend wrapperStyle={{fontSize:12, fontWeight:600}} formatter={(v) => ({regularHours:'Giờ thường', overtime:'Tăng ca'}[v] || v)}/>
+              <Bar dataKey="regularHours" stackId="h" fill="#7dd3fc" radius={[0,0,4,4]} barSize={40}/>
+              <Bar dataKey="overtime" stackId="h" fill="url(#otHatchWh)" stroke="#ef4444" strokeWidth={1} radius={[4,4,0,0]} barSize={40}>
+                <LabelList position="top" content={({x, y, width, index}) => {
+                  const row = data[index];
+                  if (row == null || x == null || y == null || width == null) return null;
+                  return <text x={x + width / 2} y={y - 8} fill="#0f766e" fontSize={10} fontWeight="700" textAnchor="middle">{fmt(row.workHours)}</text>;
+                }}/>
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+
+    function OvertimeChart({rows, loading, fmt}){
+      const data = useMemo(() => toChartRows(rows), [rows]);
+      if (!hasRecharts) return <OvertimeChartSvg rows={rows} loading={loading} fmt={fmt}/>;
+      const tickFmt = (v) => Number(v).toLocaleString('vi-VN');
+      return (
+        <div className="w-full" style={{opacity: loading ? 0.45 : 1}}>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data} margin={CHART_MARGIN}>
+              <defs>
+                <pattern id="otHatchOt" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" strokeWidth="3" opacity="0.9"/>
+                </pattern>
+              </defs>
+              <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" vertical={false}/>
+              <XAxis dataKey="label" tick={{fill:'#64748b', fontSize:12, fontWeight:700}} axisLine={{stroke:'#94a3b8'}}/>
+              <YAxis tickFormatter={tickFmt} domain={[0, yDomainHeadroom(Math.max(...data.map(d => d.overtime || 0), 1))]} tick={{fill:'#dc2626', fontSize:11}} axisLine={false} tickLine={false} label={{value:'Giờ tăng ca', angle:-90, position:'insideLeft', fill:'#dc2626', fontSize:11, fontWeight:700}}/>
+              <Tooltip formatter={(v) => [tickFmt(v), 'Tăng ca']} labelFormatter={(l, p) => `${l} · ${p?.[0]?.payload?.monthKey || ''}`}/>
+              <Bar dataKey="overtime" fill="url(#otHatchOt)" stroke="#ef4444" strokeWidth={1} radius={[8,8,0,0]} barSize={44}>
+                <LabelList dataKey="overtime" position="top" offset={10} formatter={(v) => fmt(v)} style={{fill:'#b91c1c', fontSize:10, fontWeight:700}}/>
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+
+    function ComboWorkloadChart({rows, loading, fmt}){
+      const data = useMemo(() => toChartRows(rows), [rows]);
+      if (!hasRecharts) return <ComboWorkloadChartSvg rows={rows} loading={loading} fmt={fmt}/>;
+      const tickFmt = (v) => Number(v).toLocaleString('vi-VN');
+      return (
+        <div className="w-full" style={{opacity: loading ? 0.45 : 1}}>
+          <ResponsiveContainer width="100%" height={340}>
+            <ComposedChart data={data} margin={COMBO_CHART_MARGIN}>
+              <defs>
+                <pattern id="otHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" strokeWidth="3" opacity="0.9"/>
+                </pattern>
+              </defs>
+              <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" vertical={false}/>
+              <XAxis dataKey="label" tick={{fill:'#64748b', fontSize:12, fontWeight:700}} axisLine={{stroke:'#94a3b8'}}/>
+              <YAxis yAxisId="tasks" orientation="left" tickFormatter={tickFmt} domain={[0, yDomainHeadroom(Math.max(...data.map(d => d.tasks || 0), 1))]} tick={{fill:'#2563eb', fontSize:11}} axisLine={false} tickLine={false} label={{value:'Số tác vụ', angle:-90, position:'insideLeft', fill:'#2563eb', fontSize:11, fontWeight:700}}/>
+              <YAxis yAxisId="hours" orientation="right" tickFormatter={tickFmt} domain={[0, yDomainHeadroom(Math.max(...data.map(d => d.workHours || 0), 1))]} tick={{fill:'#0d9488', fontSize:11}} axisLine={false} tickLine={false} label={{value:'Số giờ công', angle:90, position:'insideRight', fill:'#0d9488', fontSize:11, fontWeight:700}}/>
+              <Tooltip content={<DashboardTooltip/>}/>
+              <Legend wrapperStyle={{fontSize:12, fontWeight:600, paddingTop:8}} formatter={(v) => ({tasks:'Số tác vụ', regularHours:'Giờ thường', overtime:'Tăng ca (trong tổng)'}[v] || v)}/>
+              <Bar yAxisId="hours" dataKey="regularHours" name="regularHours" stackId="hours" fill="#7dd3fc" radius={[0,0,4,4]} barSize={36}/>
+              <Bar yAxisId="hours" dataKey="overtime" name="overtime" stackId="hours" fill="url(#otHatch)" stroke="#ef4444" strokeWidth={1} radius={[4,4,0,0]} barSize={36}>
+                <LabelList position="top" content={({x, y, width, index}) => {
+                  const row = data[index];
+                  if (row == null || x == null || y == null || width == null) return null;
+                  return <text x={x + width / 2} y={y - 10} fill="#0f766e" fontSize={10} fontWeight="700" textAnchor="middle">{fmt(row.workHours)}</text>;
+                }}/>
+              </Bar>
+              <Line yAxisId="tasks" type="monotone" dataKey="tasks" name="tasks" stroke="#2563eb" strokeWidth={3} dot={{r:5, strokeWidth:2, fill:'#fff'}} activeDot={{r:7}}>
+                <LabelList dataKey="tasks" position="bottom" offset={14} formatter={(v) => fmt(v)} style={{fill:'#1e40af', fontSize:11, fontWeight:800}}/>
+              </Line>
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+
+    function PeopleHeadcountChart({rows, loading, fmt, embedded=false}){
+      const data = useMemo(() => toChartRows(rows), [rows]);
+      if (!hasRecharts) return embedded ? <PeopleHeadcountChartSvg rows={rows} loading={loading} fmt={fmt} bare/> : <PeopleHeadcountChartSvg rows={rows} loading={loading} fmt={fmt}/>;
+      const chart = (
+          <ResponsiveContainer width="100%" height={embedded ? 300 : 180}>
+            <BarChart data={data} margin={CHART_MARGIN}>
+              <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" vertical={false}/>
+              <XAxis dataKey="label" tick={{fill:'#64748b', fontSize:12, fontWeight:700}} axisLine={{stroke:'#94a3b8'}}/>
+              <YAxis domain={[0, yDomainHeadroom(Math.max(...data.map(d => d.people || 0), 1))]} tick={{fill:'#7c3aed', fontSize:11}} axisLine={false} tickLine={false} label={{value:'Số nhân sự', angle:-90, position:'insideLeft', fill:'#7c3aed', fontSize:11, fontWeight:700}}/>
+              <Tooltip formatter={(v) => [fmt(v), 'Nhân sự']} labelFormatter={(l, p) => `${l} · ${p?.[0]?.payload?.monthKey || ''}`}/>
+              <Bar dataKey="people" name="people" fill="#8b5cf6" radius={[8,8,0,0]} barSize={40}>
+                <LabelList dataKey="people" position="top" offset={10} formatter={(v) => fmt(v)} style={{fill:'#5b21b6', fontSize:10, fontWeight:700}}/>
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+      );
+      if (embedded) return <div className="w-full" style={{opacity: loading ? 0.45 : 1}}>{chart}</div>;
+      return (
+        <div className="rounded-xl border border-[var(--line)] bg-[#fafcff] p-4" style={{opacity: loading ? 0.45 : 1}}>
+          <h3 className="text-sm font-extrabold text-slate-800 mb-2">Số nhân sự theo tháng</h3>
+          {chart}
+        </div>
+      );
+    }
+
+    function TaskBoard({onNavigate}){
+      const Tile = ({title, tone, target}) => (
+        <button type="button" className={`task-tile ${tone} text-left w-full`} onClick={()=>onNavigate?.(target)}>
+          <b>{title}</b>
+        </button>
+      );
+      return (
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {HR_TOOLS.map(t => <Tile key={t.pageId} title={t.title} tone="tool" target={t.pageId}/>)}
+        </div>
+      );
+    }
+
+
+    function Filters({filters,setFilters, statuses=['Pending1','Pending2','Approved','ChangesRequested','TestBen','All'], group=false, groupOptions}){
+      const opts = groupOptions || [{value:'all',label:'Tất cả nhóm'},{value:'linh',label:'Nhóm Linh'},{value:'hieu',label:'Nhóm Hiếu'}];
+      return <div className="filter-bar">
+        <div className="filter-item filter-search">
+          <label className="field-label">Tìm kiếm</label>
+          <input className="field w-full" placeholder="Mã, tiêu đề, người lập..." value={filters.q} onChange={e=>setFilters({...filters,q:e.target.value})}/>
+        </div>
+        <div className="filter-item">
+          <label className="field-label">Trạng thái</label>
+          <select className="field w-full" value={filters.status} onChange={e=>setFilters({...filters,status:e.target.value})}>{statuses.map(s=><option key={s} value={s}>{s==='All'?'Tất cả':statusLabel(s)}</option>)}</select>
+        </div>
+        <div className="filter-item">
+          <label className="field-label">Từ ngày</label>
+          <input className="field w-full" type="date" value={filters.from} onChange={e=>setFilters({...filters,from:e.target.value})}/>
+        </div>
+        <div className="filter-item">
+          <label className="field-label">Đến ngày</label>
+          <input className="field w-full" type="date" value={filters.to} onChange={e=>setFilters({...filters,to:e.target.value})}/>
+        </div>
+        {group ? <div className="filter-item">
+          <label className="field-label">Nhóm</label>
+          <select className="field w-full" value={filters.group} disabled={opts.length === 1} onChange={e=>setFilters({...filters,group:e.target.value})}>{opts.map(opt=><option key={opt.value} value={opt.value}>{opt.label}</option>)}</select>
+        </div> : null}
+      </div>;
+    }
+    function filterReports(items, filters, group=false, groupAssignments){
+      return items.filter(it=>{
+        const q = norm(filters.q);
+        const okQ = !q || norm([it.code,it.title,it.reporter,it.conclusion,it.note,it.leaderNote,it.picNote].join(' ')).includes(q);
+        const okS = filters.status === 'All' || it.status === filters.status;
+        const d = parseDate(it.submitDate);
+        const from = parseDate(filters.from), to = parseDate(filters.to);
+        const okFrom = !from || !d || d >= new Date(from.getFullYear(), from.getMonth(), from.getDate());
+        const okTo = !to || !d || d <= new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23,59,59,999);
+        const okG = !group || isInGroup(it.reporter, filters.group, groupAssignments);
+        return okQ && okS && okFrom && okTo && okG;
+      });
+    }
+
+    function QuickApproval({user, canLeader, canManager, mode='general'}){
+      const isNctnMode = mode === 'nctn';
+      const isLeaderMode = mode === 'leader';
+      const isManagerMode = mode === 'manager';
+      const sources = useMemo(() => [
+        ...(isLeaderMode && canLeader ? [{
+          key:'leader', label:'Trưởng nhóm', listUrl:'/api/reports', actionUrl:'/api/report-action',
+          status:'Pending2', normalize:normalizeLeaderReport, group:groupForUser(user),
+          canAct:(it)=>it.status === 'Pending2'
+        }] : []),
+        ...(isManagerMode && canManager ? [{
+          key:'manager-dqa', label:'DQA', listUrl:'/api/tp/reports', actionUrl:'/api/tp/report-action',
+          status:'Pending', normalize:(r)=>normalizeManagerReport(r,'DQA'), canAct:(it)=>['Pending','Pending1'].includes(it.status)
+        }] : []),
+        ...(isNctnMode && canManager ? [{
+          key:'manager-nctn', label:'NCTN', listUrl:'/api/tp/nctn-reports', actionUrl:'/api/tp/nctn-action',
+          status:'Pending1', normalize:(r)=>normalizeManagerReport(r,'NCTN'), canAct:(it)=>['Pending','Pending1'].includes(it.status)
+        }] : [])
+      ], [canLeader, canManager, isLeaderMode, isManagerMode, isNctnMode, user?.username, user?.role, user?.team]);
+      const [items,setItems]=useState([]);
+      const [loading,setLoading]=useState(false);
+      const [toast,setToast]=useState([]);
+      const [modal,setModal]=useState({open:false, action:'', targets:[], comment:'', reason:''});
+      const [preview,setPreview]=useState({open:false, title:'', url:'', originalUrl:''});
+      function pushToast(title, detail=''){
+        const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        setToast(cur => [{id,title,detail}, ...cur].slice(0, 4));
+        setTimeout(()=>setToast(cur => cur.filter(x => x.id !== id)), 3500);
+      }
+      function sourceUrl(source){
+        const url = new URL(source.listUrl, window.location.origin);
+        url.searchParams.set('action', 'reports_query');
+        url.searchParams.set('status', source.status);
+        url.searchParams.set('statusLabel', statusLabel(source.status));
+        url.searchParams.set('reviewer', user?.username || '');
+        url.searchParams.set('role', user?.role || '');
+        url.searchParams.set('team', user?.team || '');
+        if (source.group) url.searchParams.set('group', source.group);
+        url.searchParams.set('_ts', Date.now());
+        return `${url.pathname}${url.search}`;
+      }
+      async function load(){
+        setLoading(true);
+        try{
+          let assignments = null;
+          if (sources.some(s => s.key === 'leader')){
+            const params = new URLSearchParams({reviewer:user?.username || '', role:user?.role || '', team:user?.team || '', _ts:Date.now()});
+            assignments = normalizeGroupAssignments(await api(`/api/groups?${params.toString()}`));
+          }
+          const loaded = await Promise.all(sources.map(async source => {
+            const json = await api(sourceUrl(source));
+            let rows = deepRows(json).map(source.normalize).filter(x => (x.id || x.code || x.title) && source.canAct(x));
+            if (source.key === 'leader' && assignments) rows = filterReports(rows, {q:'',status:source.status,from:'',to:'',group:source.group || 'all'}, true, assignments);
+            return rows.map(row => ({...row, quickSource:source}));
+          }));
+          setItems(loaded.flat().sort((a,b)=>{
+            const da = parseDate(a.submitDate), db = parseDate(b.submitDate);
+            return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+          }));
+        }catch(ex){ pushToast('Tải dữ liệu thất bại', ex.message || String(ex)); }
+        finally{ setLoading(false); }
+      }
+      useEffect(()=>{ load(); },[sources]);
+      function openAction(action, targets){
+        const list = Array.isArray(targets) ? targets : [targets];
+        setModal({open:true, action, targets:list.filter(Boolean), comment:'', reason:''});
+      }
+      async function submitAction(){
+        const {action, targets, comment, reason} = modal;
+        if (!targets?.length) return;
+        if (action === 'report_reject' && !String(reason || '').trim()){ pushToast('Thiếu lý do', 'Bạn cần nhập lý do từ chối.'); return; }
+        setLoading(true);
+        try{
+          for (let i = 0; i < targets.length; i++){
+            const item = targets[i];
+            await postForm(item.quickSource.actionUrl, {
+              action, id:item.id, reviewer:user?.username || '',
+              comment: action === 'report_reject' ? '' : (comment || ''),
+              reason: action === 'report_reject' ? (reason || '') : '',
+              qa_code:`QA.RV.${Date.now()}.${i+1}`,
+              submitDate:item.submitDate || '',
+              sentDate:nowMinute(),
+              ma_tac_vu:item.code || '',
+              tieu_de:item.title || '',
+              ma_bao_cao:item.conclusion || '',
+              _ts:Date.now()
+            });
+          }
+          pushToast('Đã gửi thao tác', 'Bản ghi đã được gửi lên hệ thống.');
+          setModal({open:false, action:'', targets:[], comment:'', reason:''});
+          load();
+        }catch(ex){ pushToast('Gửi thất bại', ex.message || String(ex)); }
+        finally{ setLoading(false); }
+      }
+      const bySource = sources.map(source => ({...source, count:items.filter(it => it.quickSource?.key === source.key).length}));
+      return <div className="approval-card">
+        <div className="approval-header">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="font-extrabold text-slate-950">{isNctnMode ? 'Duyệt nhanh báo cáo NCTN' : isManagerMode ? 'Duyệt nhanh báo cáo DQA' : 'Duyệt nhanh báo cáo Trưởng nhóm'}</h2>
+              <p className="approval-subtitle">{isNctnMode ? 'Luồng NCTN được tách riêng để xử lý logic đặc thù.' : isManagerMode ? 'Luồng Trưởng phòng DQA, chỉ xử lý báo cáo đang chờ phê duyệt.' : 'Luồng Trưởng nhóm, chỉ xử lý báo cáo Trưởng nhóm Review.'}</p>
+            </div>
+            <div className="metric-row">
+              <div className="metric-chip"><div className="label">Cần xử lý</div><div className="value">{items.length}</div></div>
+              {bySource.map(s => <div className="metric-chip" key={s.key}><div className="label">{s.label}</div><div className="value">{s.count}</div></div>)}
+            </div>
+          </div>
+        </div>
+        <div className="quick-topbar">
+          <div className="text-sm text-slate-600 font-bold">{loading ? 'Đang tải danh sách...' : `Có ${items.length} báo cáo có thể thao tác nhanh`}</div>
+          <div className="flex gap-2 flex-wrap items-center">
+            <button type="button" className="btn btn-ghost min-w-[124px]" onClick={()=>openAction('report_approve', items)} disabled={loading || !items.length}>Duyệt tất cả</button>
+            <button type="button" className="btn btn-primary min-w-[108px]" onClick={load} disabled={loading}>{loading ? <span className="spinner"></span> : 'Tải lại'}</button>
+          </div>
+        </div>
+        <div className="p-4 lg:p-5">
+          {items.length ? <div className="quick-grid">
+            {items.map((it,idx)=><div className="quick-card" key={`${it.quickSource?.key}-${it.id || it.code || idx}`}>
+              <div className="quick-card-head">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
+                    <span className="pill bg-sky-50 text-sky-700 border-sky-200">{it.quickSource?.label}</span>
+                    {statusBadge(it.status)}
+                  </div>
+                  <div className="quick-card-title">{escapeText(it.title) || '-'}</div>
+                </div>
+              </div>
+              <div>{it.reportUrl ? <button type="button" className="code-link text-left" onClick={()=>setPreview({open:true,title:it.code || it.id || 'Báo cáo',url:reportPreviewUrl(it.reportUrl),originalUrl:it.reportUrl,downloadUrl:reportDownloadUrl(it.reportUrl)})}>{it.code || it.id}</button> : <span className="code-link">{it.code || it.id}</span>}</div>
+              <div className="quick-meta">
+                <div><span>Người lập</span><b>{escapeText(it.reporter) || '-'}</b></div>
+                <div><span>Ngày nộp</span><b>{fmtDate(it.submitDate) || '-'}</b></div>
+                <div><span>Hạn</span><b>{fmtDate(it.wishDate) || '-'}</b></div>
+                <div><span>Kết luận</span><b>{escapeText(it.conclusion) || '-'}</b></div>
+                <div><span>Nhận xét trưởng nhóm</span><b>{escapeText(it.leaderNote) || '-'}</b></div>
+                <div><span>Ghi chú</span><b>{escapeText(formatReportNote(it)) || '-'}</b></div>
+              </div>
+              <div className="quick-actions">
+                <button type="button" className="btn btn-primary" onClick={()=>openAction('report_approve', it)} disabled={loading}>Duyệt</button>
+                <button type="button" className="btn btn-danger" onClick={()=>openAction('report_reject', it)} disabled={loading}>Từ chối</button>
+                <button type="button" className="btn btn-amber" onClick={()=>openAction('report_request_changes', it)} disabled={loading}>Bổ sung</button>
+              </div>
+            </div>)}
+          </div> : <div className="empty-state"><b>Không có báo cáo cần duyệt nhanh</b>{loading ? 'Đang tải dữ liệu.' : 'Các mục hiện tại vẫn giữ nguyên ở màn hình Báo cáo.'}</div>}
+        </div>
+        <ToastHost items={toast} onDismiss={(id)=>setToast(cur=>cur.filter(x=>x.id!==id))}/>
+        <Modal
+          open={modal.open}
+          title={modal.action==='report_approve' ? 'Xác nhận duyệt nhanh' : modal.action==='report_request_changes' ? 'Yêu cầu bổ sung' : 'Từ chối báo cáo'}
+          onClose={()=>setModal({open:false, action:'', targets:[], comment:'', reason:''})}
+          footer={<><button className="btn btn-ghost" onClick={()=>setModal({open:false, action:'', targets:[], comment:'', reason:''})}>Hủy</button><button className="btn btn-primary" onClick={submitAction} disabled={loading}>{loading ? <span className="spinner"></span> : 'Gửi'}</button></>}
+        >
+          <div className="text-sm text-slate-600 mb-4">{modal.targets[0]?.title || 'Báo cáo'} · {modal.targets[0]?.code || modal.targets[0]?.id || ''}</div>
+          {modal.action === 'report_reject' ? (
+            <><label className="text-sm font-extrabold">Lý do từ chối</label><textarea className="field w-full mt-1" rows="4" value={modal.reason} onChange={e=>setModal(m=>({...m, reason:e.target.value}))} placeholder="Nhập lý do (bắt buộc)"></textarea></>
+          ) : (
+            <><label className="text-sm font-extrabold">Bình luận</label><textarea className="field w-full mt-1" rows="4" value={modal.comment} onChange={e=>setModal(m=>({...m, comment:e.target.value}))} placeholder="Nhập bình luận (không bắt buộc)"></textarea></>
+          )}
+        </Modal>
+        <Modal
+          open={preview.open}
+          title="Xem báo cáo"
+          onClose={()=>setPreview({open:false, title:'', url:'', originalUrl:''})}
+          footer={<><a className="btn btn-ghost" href={preview.originalUrl || preview.url} target="_blank" rel="noreferrer">Mở tab mới</a><a className="btn btn-amber" href={preview.downloadUrl || preview.originalUrl || preview.url} target="_blank" rel="noreferrer">Tải xuống</a><button className="btn btn-primary" onClick={()=>setPreview({open:false, title:'', url:'', originalUrl:''})}>Xong</button></>}
+        >
+          {preview.url ? <iframe className="preview-frame" src={preview.url} title={preview.title || 'Xem báo cáo'}></iframe> : <div className="empty-state"><b>Không có link báo cáo</b></div>}
+        </Modal>
+      </div>;
+    }
+
+    function LeaderReportApproval({user}){
+      return <ReportApproval user={user} role="leader" title="Báo cáo chờ trưởng nhóm duyệt" listUrl="/api/reports" actionUrl="/api/report-action" normalize={normalizeLeaderReport} groupFilter statuses={['Pending2','All']} defaultStatus="Pending2" />;
+    }
+
+    function QuickFormApproval({user}){
+      const listUrl = '/api/pdforms';
+      const actionUrl = '/api/pdform-action';
+      const approveStatus = 'Leader review';
+      const [items,setItems]=useState([]);
+      const [loading,setLoading]=useState(false);
+      const [toast,setToast]=useState([]);
+      const [modal,setModal]=useState({open:false, action:'', targets:[], comment:'', reason:''});
+      const lockedGroup = user?.role === 'Trưởng nhóm' ? groupForUser(user) : 'all';
+      const [group,setGroup]=useState(lockedGroup);
+      const [groupAssignments,setGroupAssignments]=useState(null);
+      const groupOptions = useMemo(() => groupOptionsFromAssignments(groupAssignments, lockedGroup), [groupAssignments, lockedGroup]);
+      const rows = useMemo(() => items
+        .filter(it => it.type !== 'form5_subtask_auto_c')
+        .filter(it => norm(it.status) === norm(approveStatus))
+        .filter(it => groupAssignments ? isInGroup(it.pic, group, groupAssignments) : false), [items, group, groupAssignments]);
+      function pushToast(title, detail=''){
+        const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        setToast(cur => [{id,title,detail}, ...cur].slice(0, 4));
+        setTimeout(()=>setToast(cur => cur.filter(x => x.id !== id)), 3500);
+      }
+      async function load(){
+        setLoading(true);
+        try{
+          const params = new URLSearchParams({reviewer:user?.username || '', role:user?.role || '', team:user?.team || '', _ts:Date.now()});
+          setGroupAssignments(normalizeGroupAssignments(await api(`/api/groups?${params.toString()}`)));
+          const json = await api(`${listUrl}?_ts=${Date.now()}`);
+          setItems(deepRows(json).map(normalizePdForm).filter(x=>x.id));
+        }catch(ex){ pushToast('Tải dữ liệu thất bại', ex.message || String(ex)); }
+        finally{ setLoading(false); }
+      }
+      useEffect(()=>{ load(); },[]);
+      function openAction(action, targets){
+        const list = Array.isArray(targets) ? targets : [targets];
+        setModal({open:true, action, targets:list.filter(Boolean), comment:'', reason:''});
+      }
+      async function submitAction(){
+        const {action, targets, comment, reason} = modal;
+        if (!targets?.length) return;
+        const isReject = action === 'pdform_reject';
+        if (isReject && !String(reason || '').trim()){ pushToast('Thiếu lý do', 'Bạn cần nhập lý do từ chối.'); return; }
+        setLoading(true);
+        try{
+          for (let i = 0; i < targets.length; i++){
+            const item = targets[i];
+            const payload = {
+              action,
+              id:item.id,
+              reviewer:user?.username || '',
+              comment: action === 'pdform_approve' ? (comment || '') : '',
+              reason: isReject ? (reason || '') : '',
+              Leaderformactiontime: nowMinute(),
+              Managerformactiontime: nowMinute(),
+              _ts:Date.now()
+            };
+            Object.entries(item.raw || {}).forEach(([k,v]) => {
+              if (!(k in payload) && k.toLowerCase() !== 'taskdata') payload[k] = typeof v === 'object' ? JSON.stringify(v) : String(v ?? '');
+            });
+            await postForm(actionUrl, payload);
+          }
+          pushToast('Đã gửi thao tác', `${targets.length} form đã được gửi lên hệ thống.`);
+          setModal({open:false, action:'', targets:[], comment:'', reason:''});
+          load();
+        }catch(ex){ pushToast('Gửi thất bại', ex.message || String(ex)); }
+        finally{ setLoading(false); }
+      }
+      return <div className="approval-card">
+        <div className="approval-header">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="font-extrabold text-slate-950">Duyệt nhanh form</h2>
+              <p className="approval-subtitle">Luồng Trưởng nhóm, chỉ hiển thị form đang ở trạng thái Leader review.</p>
+            </div>
+            <div className="metric-row">
+              <div className="metric-chip"><div className="label">Cần xử lý</div><div className="value">{rows.length}</div></div>
+              <div className="metric-chip"><div className="label">Form</div><div className="value">{rows.length}</div></div>
+            </div>
+          </div>
+        </div>
+        <div className="quick-topbar">
+          <div className="text-sm text-slate-600 font-bold">{loading ? 'Đang tải danh sách...' : `Có ${rows.length} form có thể thao tác nhanh`}</div>
+          <div className="flex gap-2 flex-wrap items-center">
+            <select className="field min-w-[150px]" value={group} disabled={groupOptions.length === 1} onChange={e=>setGroup(e.target.value)}>
+              {groupOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+            <button type="button" className="btn btn-ghost min-w-[124px]" onClick={()=>openAction('pdform_approve', rows)} disabled={loading || !rows.length}>Duyệt tất cả</button>
+            <button type="button" className="btn btn-primary min-w-[108px]" onClick={load} disabled={loading}>{loading ? <span className="spinner"></span> : 'Tải lại'}</button>
+          </div>
+        </div>
+        <div className="p-4 lg:p-5">
+          {rows.length ? <div className="quick-grid">
+            {rows.map((it,idx)=><div className="quick-card" key={`${it.id || it.subtaskCode || idx}`}>
+              <div className="quick-card-head">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
+                    <span className="pill bg-sky-50 text-sky-700 border-sky-200">Form</span>
+                    <span className="pill bg-indigo-50 text-indigo-700 border-indigo-200">{escapeText(it.status) || '-'}</span>
+                  </div>
+                  <div className="quick-card-title">{escapeText(it.taskName) || '-'}</div>
+                </div>
+              </div>
+              <div><span className="code-link">{escapeText(it.subtaskCode || it.taskCode || it.id) || '-'}</span></div>
+              <div className="quick-meta">
+                <div><span>PIC</span><b>{escapeText(it.pic) || '-'}</b></div>
+                <div><span>Thời gian gửi</span><b>{fmtDate(it.sentTime) || it.sentTime || '-'}</b></div>
+                <div><span>Mã</span><b>{escapeText(it.taskCode) || '-'}</b></div>
+                <div><span>Form</span><b>{it.formLink ? <a className="code-link" href={/^https?:\/\//.test(it.formLink)?it.formLink:`https://${it.formLink}`} target="_blank" rel="noreferrer">Xem form</a> : '-'}</b></div>
+              </div>
+              <div className="quick-actions" style={{gridTemplateColumns:'1fr 1fr'}}>
+                <button type="button" className="btn btn-primary" onClick={()=>openAction('pdform_approve', it)} disabled={loading}>Duyệt</button>
+                <button type="button" className="btn btn-danger" onClick={()=>openAction('pdform_reject', it)} disabled={loading}>Từ chối</button>
+              </div>
+            </div>)}
+          </div> : <div className="empty-state"><b>Không có form cần duyệt nhanh</b>{loading ? 'Đang tải dữ liệu.' : 'Các mục hiện tại vẫn giữ nguyên ở màn hình Form.'}</div>}
+        </div>
+        <ToastHost items={toast} onDismiss={(id)=>setToast(cur=>cur.filter(x=>x.id!==id))}/>
+        <Modal
+          open={modal.open}
+          title={modal.action==='pdform_approve' ? 'Xác nhận duyệt form' : 'Từ chối form'}
+          onClose={()=>setModal({open:false, action:'', targets:[], comment:'', reason:''})}
+          footer={<><button className="btn btn-ghost" onClick={()=>setModal({open:false, action:'', targets:[], comment:'', reason:''})}>Hủy</button><button className="btn btn-primary" onClick={submitAction} disabled={loading}>{loading ? <span className="spinner"></span> : 'Gửi'}</button></>}
+        >
+          <div className="text-sm text-slate-600 mb-4">Đang thao tác trên <b>{modal.targets.length}</b> form.</div>
+          {modal.action === 'pdform_reject' ? (
+            <><label className="text-sm font-extrabold">Lý do từ chối</label><textarea className="field w-full mt-1" rows="4" value={modal.reason} onChange={e=>setModal(m=>({...m, reason:e.target.value}))} placeholder="Nhập lý do (bắt buộc)"></textarea></>
+          ) : (
+            <><label className="text-sm font-extrabold">Bình luận</label><textarea className="field w-full mt-1" rows="4" value={modal.comment} onChange={e=>setModal(m=>({...m, comment:e.target.value}))} placeholder="Nhập bình luận (không bắt buộc)"></textarea></>
+          )}
+        </Modal>
+      </div>;
+    }
+
+    function LeaderFormApproval({user}){
+      return <FormApproval user={user} role="leader" listUrl="/api/pdforms" actionUrl="/api/pdform-action" approveStatus="Leader review" />;
+    }
+
+    function ManagerDqaApproval({user}){
+      return <ReportApproval user={user} role="manager" title="Báo cáo DQA chờ trưởng phòng duyệt" listUrl="/api/tp/reports" actionUrl="/api/tp/report-action" normalize={(r)=>normalizeManagerReport(r,'DQA')} statuses={['Pending','Pending2','Approved','ChangesRequested','TestBen','All']} />;
+    }
+
+    function ManagerNctnApproval({user}){
+      return <ReportApproval user={user} role="manager-nctn" title="Báo cáo NCTN chờ trưởng phòng duyệt" listUrl="/api/tp/nctn-reports" actionUrl="/api/tp/nctn-action" normalize={(r)=>normalizeManagerReport(r,'NCTN')} statuses={['Pending1','Pending','Pending2','Approved','ChangesRequested','TestBen','All']} />;
+    }
+
+    function ReportApproval({user,role,title,listUrl,actionUrl,normalize,statuses,groupFilter=false,defaultStatus}){
+      const [items,setItems]=useState([]);
+      const lockedGroup = groupFilter && user?.role === 'Trưởng nhóm' ? groupForUser(user) : 'all';
+      const [filters,setFilters]=useState({q:'',status:defaultStatus || statuses[0],from:'',to:'',group:lockedGroup});
+      const [loading,setLoading]=useState(false);
+      const [message,setMessage]=useState('');
+      const [toast,setToast]=useState([]);
+      const [selected,setSelected]=useState(()=>new Set());
+      const [modal,setModal]=useState({open:false, action:'', targets:[], comment:'', reason:''});
+      const [preview,setPreview]=useState({open:false, title:'', url:'', originalUrl:''});
+      const [groupAssignments,setGroupAssignments]=useState(null);
+      const groupOptions = useMemo(
+        () => groupOptionsFromAssignments(groupAssignments, lockedGroup),
+        [groupAssignments, lockedGroup]
+      );
+      const rows = useMemo(()=>{
+        if (groupFilter && groupAssignments === null) return [];
+        return filterReports(items,filters,groupFilter,groupAssignments);
+      },[items,filters,groupFilter,groupAssignments]);
+      const [showSkel,setShowSkel]=useState(true);
+      const selectedCount = selected.size;
+      function pushToast(title, detail=''){
+        const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        setToast(cur => [{id,title,detail}, ...cur].slice(0, 4));
+        setTimeout(()=>setToast(cur => cur.filter(x => x.id !== id)), 3500);
+      }
+      function reportListRequestUrl(){
+        const url = new URL(listUrl, window.location.origin);
+        if (!url.searchParams.has('action')) url.searchParams.set('action', 'reports_query');
+        url.searchParams.set('status', filters.status);
+        url.searchParams.set('statusLabel', statusLabel(filters.status));
+        url.searchParams.set('reviewer', user?.username || '');
+        url.searchParams.set('role', user?.role || '');
+        url.searchParams.set('team', user?.team || '');
+        if (filters.group) url.searchParams.set('group', filters.group);
+        if (filters.from) url.searchParams.set('from', filters.from);
+        if (filters.to) url.searchParams.set('to', filters.to);
+        if (filters.q) url.searchParams.set('q', filters.q);
+        url.searchParams.set('_ts', Date.now());
+        return `${url.pathname}${url.search}`;
+      }
+      async function loadGroups(){
+        const params = new URLSearchParams({
+          reviewer: user?.username || '',
+          role: user?.role || '',
+          team: user?.team || '',
+          _ts: Date.now()
+        });
+        const json = await api(`/api/groups?${params.toString()}`);
+        const normalized = normalizeGroupAssignments(json);
+        setGroupAssignments(normalized);
+        return normalized;
+      }
+      async function load({ reloadGroups = false } = {}){
+        setLoading(true); setMessage('');
+        setShowSkel(true);
+        try{
+          if (groupFilter && (reloadGroups || groupAssignments === null)) await loadGroups();
+          const json = await api(reportListRequestUrl());
+          const normalized = deepRows(json)
+            .map(normalize)
+            .filter(x=>x.id || x.code || x.title)
+            .sort((a,b)=>{
+              const da = parseDate(a.submitDate);
+              const db = parseDate(b.submitDate);
+              return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+            });
+          setItems(normalized);
+          setSelected(new Set());
+        }catch(ex){ setMessage(ex.message); }
+        finally{ setLoading(false); }
+      }
+      useEffect(()=>{
+        if (!loading){
+          const t = setTimeout(()=>setShowSkel(false), 260);
+          return ()=>clearTimeout(t);
+        }
+      },[loading]);
+      useEffect(()=>{
+        if (!groupFilter) return;
+        let alive = true;
+        async function initGroupsAndReports(){
+          setLoading(true); setMessage(''); setShowSkel(true);
+          try{
+            await loadGroups();
+            if (alive) await load();
+          }catch(ex){
+            if (alive) {
+              setGroupAssignments(null);
+              setItems([]);
+              setMessage(ex.message || 'Không tải được dữ liệu phân nhóm');
+            }
+          }finally{
+            if (alive) setLoading(false);
+          }
+        }
+        initGroupsAndReports();
+        return ()=>{ alive = false; };
+      },[groupFilter, user?.username, user?.role, user?.team]);
+      useEffect(()=>{
+        if (groupFilter && groupAssignments === null) return;
+        load();
+      },[listUrl, filters.status, filters.group]);
+      function rowKey(it, idx){ return String(it.id || it.code || idx); }
+      function toggleAll(){
+        if (rows.length > 0 && selected.size === rows.length){ setSelected(new Set()); return; }
+        setSelected(new Set(rows.map((it,idx)=>rowKey(it,idx))));
+      }
+      function toggleOne(it, idx){
+        const key = rowKey(it, idx);
+        setSelected(prev => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; });
+      }
+      const selectedItems = rows.filter((it,idx)=>selected.has(rowKey(it,idx)));
+      const isManagerReport = role === 'manager' || role === 'manager-nctn';
+      const canActOnReport = (it) => isManagerReport ? ['Pending','Pending1'].includes(it.status) : it.status === 'Pending2';
+      const pendingApprovalItems = isManagerReport ? rows.filter(canActOnReport) : [];
+      function openAction(action, targets){
+        setModal({open:true, action, targets, comment:'', reason:''});
+      }
+      async function submitAction(){
+        const {action, targets, comment, reason} = modal;
+        if (!targets?.length) return;
+        if (action === 'report_reject' && !String(reason || '').trim()){ pushToast('Thiếu lý do', 'Bạn cần nhập lý do từ chối.'); return; }
+        setLoading(true);
+        try{
+          for (let i = 0; i < targets.length; i++){
+            const item = targets[i];
+            const payload = {
+              action, id:item.id, reviewer:user?.username || '',
+              comment: action === 'report_reject' ? '' : (comment || ''),
+              reason: action === 'report_reject' ? (reason || '') : '',
+              qa_code:`QA.RV.${Date.now()}.${i+1}`,
+              submitDate:item.submitDate || '',
+              sentDate:nowMinute(),
+              ma_tac_vu:item.code || '',
+              tieu_de:item.title || '',
+              ma_bao_cao:item.conclusion || '',
+              _ts:Date.now()
+            };
+            await postForm(actionUrl, payload);
+          }
+          pushToast('Đã gửi thao tác', `${targets.length} bản ghi đã được gửi lên hệ thống.`);
+          setModal({open:false, action:'', targets:[], comment:'', reason:''});
+          load();
+        }catch(ex){
+          pushToast('Gửi thất bại', ex.message || String(ex));
+        }finally{
+          setLoading(false);
+        }
+      }
+      const pendingCount = countBy(items, it => ['Pending','Pending1','Pending2'].includes(it.status));
+      const doneCount = countBy(items, it => it.status === 'Approved');
+      const changeCount = countBy(items, it => it.status === 'ChangesRequested');
+      return <div className="approval-card">
+        <div className="approval-header">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="font-extrabold text-slate-950">{title}</h2>
+            </div>
+            <div className="metric-row">
+              <div className="metric-chip"><div className="label">Chờ xử lý</div><div className="value">{pendingCount}</div></div>
+              <div className="metric-chip"><div className="label">Hoàn thành</div><div className="value">{doneCount}</div></div>
+              <div className="metric-chip"><div className="label">Đang sửa</div><div className="value">{changeCount}</div></div>
+            </div>
+          </div>
+        </div>
+        <div className="approval-toolbar">
+          <Filters filters={filters} setFilters={setFilters} statuses={statuses} group={groupFilter} groupOptions={groupOptions}/>
+          <div className="toolbar-actions">
+            {selectedCount > 0 ? (
+              <div className="bulk-bar">
+                <span className="bulk-count">Đã chọn {selectedCount}</span>
+                <button className="btn btn-sm btn-primary" onClick={()=>openAction('report_approve', selectedItems)} disabled={loading}>Duyệt</button>
+                <button className="btn btn-sm btn-amber" onClick={()=>openAction('report_request_changes', selectedItems)} disabled={loading}>Bổ sung</button>
+                <button className="btn btn-sm btn-danger" onClick={()=>openAction('report_reject', selectedItems)} disabled={loading}>Từ chối</button>
+                <button className="btn btn-sm btn-ghost" onClick={()=>setSelected(new Set())} disabled={loading}>Bỏ chọn</button>
+              </div>
+            ) : <span className="bulk-hint">Chọn nhiều dòng để thao tác hàng loạt</span>}
+            <div className="toolbar-actions-right">
+              {isManagerReport ? <button type="button" className="btn btn-ghost min-w-[136px]" onClick={()=>openAction('report_approve', pendingApprovalItems)} disabled={loading || !pendingApprovalItems.length}>Phê duyệt tất cả</button> : null}
+              <button type="button" className="btn btn-primary min-w-[108px]" onClick={() => load({ reloadGroups: true })} disabled={loading}>{loading ? <span className="spinner"></span> : 'Tải lại'}</button>
+            </div>
+          </div>
+        </div>
+        {message ? <div className="message-banner">{message}</div> : null}
+        <div className="table-meta">
+          <span>Hiển thị <strong>{rows.length}</strong> / {items.length} bản ghi</span>
+          {groupFilter && groupAssignments ? <span>Nhóm: <strong>{groupOptions.find(o => o.value === filters.group)?.label || filters.group}</strong></span> : null}
+        </div>
+        <div className="relative">
+          <TableSkeleton kind="report" rows={8} visible={showSkel} transitionMs={260}/>
+          <div style={{opacity: showSkel ? 0 : 1, transition:'opacity 200ms ease-out'}} aria-hidden={showSkel}>
+            <div className="table-wrap">
+          <table className="data-table report-table min-w-[1080px]">
+            <colgroup>
+              <col className="col-check" />
+              <col className="col-action" />
+              <col className="col-code" />
+              <col className="col-title" />
+              <col className="col-person" />
+              <col className="col-date" />
+              <col className="col-date" />
+              <col className="col-status" />
+              <col className="col-note" />
+              <col className="col-note" />
+            </colgroup>
+            <thead><tr>
+              <th className="w-[44px]"><input type="checkbox" checked={rows.length>0 && selected.size===rows.length} onChange={toggleAll} aria-label="Chọn tất cả"/></th>
+              <th>Hành động</th><th>Mã</th><th>Tiêu đề</th><th>Người lập</th><th>Ngày nộp</th><th>Hạn</th><th>Trạng thái</th><th>Kết luận</th><th>Ghi chú</th>
+            </tr></thead>
+            <tbody>{rows.length ? rows.map((it,idx)=><tr key={`${it.id}-${idx}`} className="border-t">
+              <td><input type="checkbox" checked={selected.has(rowKey(it,idx))} onChange={()=>toggleOne(it,idx)} aria-label="Chọn bản ghi"/></td>
+              <td><div className="action-stack-compact">
+                <button type="button" className="btn btn-sm btn-primary" onClick={()=>openAction('report_approve',[it])} disabled={loading || !canActOnReport(it)}>Duyệt</button>
+                <button type="button" className="btn btn-sm btn-danger" onClick={()=>openAction('report_reject',[it])} disabled={loading || !canActOnReport(it)}>Từ chối</button>
+                <button type="button" className="btn btn-sm btn-amber" onClick={()=>openAction('report_request_changes',[it])} disabled={loading || !canActOnReport(it)}>Bổ sung</button>
+              </div></td>
+              <td>{it.reportUrl ? <button type="button" className="code-link" onClick={()=>setPreview({open:true,title:it.code || it.id || 'Báo cáo',url:reportPreviewUrl(it.reportUrl),originalUrl:it.reportUrl,downloadUrl:reportDownloadUrl(it.reportUrl)})}>{it.code || it.id}</button> : <span className="code-link">{it.code || it.id}</span>}</td>
+              <td><div className="cell-title-wrap"><b>{escapeText(it.title) || '-'}</b></div></td>
+              <td><div className="two-line"><b>{escapeText(it.reporter) || '-'}</b><span>{escapeText(it.email || '')}</span></div></td>
+              <td>{fmtDate(it.submitDate) || '-'}</td>
+              <td>{fmtDate(it.wishDate) || '-'}</td>
+              <td>{statusBadge(it.status)}</td>
+              <td><div className="max-w-[220px] truncate text-slate-700">{escapeText(it.conclusion) || '-'}</div></td>
+              <td><div className="max-w-[220px] truncate text-slate-600">{escapeText(formatReportNote(it)) || '-'}</div></td>
+            </tr>) : <tr><td className="empty-state" colSpan="10"><b>Không có bản ghi phù hợp</b>Thử đổi bộ lọc hoặc bấm tải lại dữ liệu.</td></tr>}</tbody>
+          </table>
+            </div>
+          </div>
+        </div>
+        <ToastHost items={toast} onDismiss={(id)=>setToast(cur=>cur.filter(x=>x.id!==id))}/>
+        <Modal
+          open={modal.open}
+          title={modal.action==='report_approve' ? 'Xác nhận duyệt' : modal.action==='report_request_changes' ? 'Yêu cầu bổ sung' : 'Từ chối báo cáo'}
+          onClose={()=>setModal({open:false, action:'', targets:[], comment:'', reason:''})}
+          footer={
+            <>
+              <button className="btn btn-ghost" onClick={()=>setModal({open:false, action:'', targets:[], comment:'', reason:''})}>Hủy</button>
+              <button className="btn btn-primary" onClick={submitAction} disabled={loading}>{loading ? <span className="spinner"></span> : 'Gửi'}</button>
+            </>
+          }
+        >
+          <div className="text-sm text-slate-600 mb-4">
+            Đang thao tác trên <b>{modal.targets.length}</b> bản ghi.
+          </div>
+          {modal.action === 'report_reject' ? (
+            <>
+              <label className="text-sm font-extrabold">Lý do từ chối</label>
+              <textarea className="field w-full mt-1" rows="4" value={modal.reason} onChange={e=>setModal(m=>({...m, reason:e.target.value}))} placeholder="Nhập lý do (bắt buộc)"></textarea>
+            </>
+          ) : (
+            <>
+              <label className="text-sm font-extrabold">Bình luận</label>
+              <textarea className="field w-full mt-1" rows="4" value={modal.comment} onChange={e=>setModal(m=>({...m, comment:e.target.value}))} placeholder="Nhập bình luận (không bắt buộc)"></textarea>
+            </>
+          )}
+        </Modal>
+        <Modal
+          open={preview.open}
+          title="Xem báo cáo"
+          onClose={()=>setPreview({open:false, title:'', url:'', originalUrl:''})}
+          footer={
+            <>
+              <a className="btn btn-ghost" href={preview.originalUrl || preview.url} target="_blank" rel="noreferrer">Mở tab mới</a>
+              <a className="btn btn-amber" href={preview.downloadUrl || preview.originalUrl || preview.url} target="_blank" rel="noreferrer">Tải xuống</a>
+              <button className="btn btn-primary" onClick={()=>setPreview({open:false, title:'', url:'', originalUrl:''})}>Xong</button>
+            </>
+          }
+        >
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="min-w-0">
+              <div className="font-extrabold truncate">{preview.title}</div>
+              <div className="text-xs text-slate-500 truncate">{preview.url}</div>
+            </div>
+          </div>
+          {preview.url ? <iframe className="preview-frame" src={preview.url} title={preview.title || 'Xem báo cáo'}></iframe> : <div className="empty-state"><b>Không có link báo cáo</b></div>}
+        </Modal>
+      </div>;
+    }
+
+    function FormApproval({user,role,listUrl,actionUrl,approveStatus}){
+      const [items,setItems]=useState([]);
+      const [status,setStatus]=useState('All');
+      const lockedGroup = user?.role === 'Trưởng nhóm' ? groupForUser(user) : 'all';
+      const [group,setGroup]=useState(lockedGroup);
+      const [groupAssignments,setGroupAssignments]=useState(null);
+      const [loading,setLoading]=useState(false);
+      const [toast,setToast]=useState([]);
+      const [selected,setSelected]=useState(()=>new Set());
+      const [modal,setModal]=useState({open:false, action:'', targets:[], comment:'', reason:''});
+      const groupOptions = useMemo(() => groupOptionsFromAssignments(groupAssignments, lockedGroup), [groupAssignments, lockedGroup]);
+      const rows = items
+        .filter(it => it.type !== 'form5_subtask_auto_c')
+        .filter(it => status==='All' || norm(it.status) === norm(status))
+        .filter(it => groupAssignments ? isInGroup(it.pic, group, groupAssignments) : false);
+      const [showSkel,setShowSkel]=useState(true);
+      const selectedCount = selected.size;
+      function pushToast(title, detail=''){
+        const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        setToast(cur => [{id,title,detail}, ...cur].slice(0, 4));
+        setTimeout(()=>setToast(cur => cur.filter(x => x.id !== id)), 3500);
+      }
+      async function load({ reloadGroups = false } = {}){
+        setLoading(true);
+        setShowSkel(true);
+        try{
+          if (reloadGroups || groupAssignments === null){
+            const params = new URLSearchParams({reviewer:user?.username || '', role:user?.role || '', team:user?.team || '', _ts:Date.now()});
+            setGroupAssignments(normalizeGroupAssignments(await api(`/api/groups?${params.toString()}`)));
+          }
+          const json = await api(`${listUrl}?_ts=${Date.now()}`);
+          setItems(deepRows(json).map(normalizePdForm).filter(x=>x.id));
+          setSelected(new Set());
+        }
+        catch(ex){ pushToast('Tải dữ liệu thất bại', ex.message || String(ex)); }
+        finally{ setLoading(false); }
+      }
+      useEffect(()=>{
+        if (!loading){
+          const t = setTimeout(()=>setShowSkel(false), 260);
+          return ()=>clearTimeout(t);
+        }
+      },[loading]);
+      useEffect(()=>{ load({ reloadGroups: true }); },[listUrl, user?.username, user?.role, user?.team]);
+      function rowKey(it, idx){ return String(it.id || it.subtaskCode || idx); }
+      function toggleAll(){
+        if (rows.length > 0 && selected.size === rows.length){ setSelected(new Set()); return; }
+        setSelected(new Set(rows.map((it,idx)=>rowKey(it,idx))));
+      }
+      function toggleOne(it, idx){
+        const key = rowKey(it, idx);
+        setSelected(prev => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; });
+      }
+      const selectedItems = rows.filter((it,idx)=>selected.has(rowKey(it,idx)));
+      function openAction(action, targets){
+        setModal({open:true, action, targets, comment:'', reason:''});
+      }
+      async function submitAction(){
+        const {action, targets, comment, reason} = modal;
+        if (!targets?.length) return;
+        const isReject = action === 'pdform_reject';
+        if (isReject && !String(reason || '').trim()){ pushToast('Thiếu lý do', 'Bạn cần nhập lý do từ chối.'); return; }
+        setLoading(true);
+        try{
+          for (let i = 0; i < targets.length; i++){
+            const item = targets[i];
+            const payload = {
+              action, id:item.id,
+              reviewer: user?.username || '',
+              comment: action === 'pdform_approve' ? (comment || '') : '',
+              reason: isReject ? (reason || '') : '',
+              Leaderformactiontime: nowMinute(),
+              Managerformactiontime: nowMinute(),
+              _ts:Date.now()
+            };
+            // Preserve upstream fields to keep webhook compatibility.
+            Object.entries(item.raw || {}).forEach(([k,v]) => {
+              if (!(k in payload) && k.toLowerCase() !== 'taskdata') payload[k] = typeof v === 'object' ? JSON.stringify(v) : String(v ?? '');
+            });
+            await postForm(actionUrl, payload);
+          }
+          pushToast('Đã gửi thao tác', `${targets.length} form đã được gửi lên hệ thống.`);
+          setModal({open:false, action:'', targets:[], comment:'', reason:''});
+          load();
+        }catch(ex){
+          pushToast('Gửi thất bại', ex.message || String(ex));
+        }finally{
+          setLoading(false);
+        }
+      }
+      const visibleItems = items
+        .filter(it => it.type !== 'form5_subtask_auto_c')
+        .filter(it => groupAssignments ? isInGroup(it.pic, group, groupAssignments) : false);
+      const waiting = countBy(visibleItems, it => norm(it.status) === norm(approveStatus));
+      const approved = countBy(visibleItems, it => norm(it.status).includes('duyet') || norm(it.status).includes('approved'));
+      return <div className="approval-card">
+        <div className="approval-header">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-2xl font-extrabold text-slate-950">Phê duyệt form</h2>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <div className="metric-chip"><div className="label">Đúng trạng thái</div><div className="value">{waiting}</div></div>
+              <div className="metric-chip"><div className="label">Đã duyệt</div><div className="value">{approved}</div></div>
+            </div>
+          </div>
+        </div>
+        <div className="approval-toolbar">
+          <div className="flex gap-2 flex-wrap">
+            <select className="field max-w-[240px]" value={status} onChange={e=>setStatus(e.target.value)}><option value="All">Tất cả</option><option value="Leader review">Leader review</option><option value="Chờ TP phê duyệt">Chờ TP phê duyệt</option><option value="Được duyệt">Được duyệt</option></select>
+            <select className="field max-w-[220px]" value={group} disabled={groupOptions.length === 1} onChange={e=>setGroup(e.target.value)}>{groupOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select>
+          </div>
+          <div className="flex gap-2 flex-wrap justify-end items-center">
+            {selectedCount > 0 ? (
+              <div className="flex gap-2 flex-wrap items-center">
+                <span className="text-sm text-slate-600 font-bold">Đã chọn: {selectedCount}</span>
+                <button className="btn btn-sm btn-primary" onClick={()=>openAction('pdform_approve', selectedItems)} disabled={loading}>Duyệt</button>
+                <button className="btn btn-sm btn-danger" onClick={()=>openAction('pdform_reject', selectedItems)} disabled={loading}>Từ chối</button>
+                <button className="btn btn-sm btn-ghost" onClick={()=>setSelected(new Set())} disabled={loading}>Bỏ chọn</button>
+              </div>
+            ) : null}
+            <button className="btn btn-primary min-w-[92px]" onClick={() => load({ reloadGroups: true })}>{loading ? <span className="spinner"></span> : 'Tải lại'}</button>
+          </div>
+        </div>
+        <div className="table-meta">
+          <span>Hiển thị <strong>{rows.length}</strong> / {visibleItems.length} form</span>
+          {groupAssignments ? <span>Nhóm: <strong>{groupOptions.find(o => o.value === group)?.label || group}</strong></span> : null}
+        </div>
+        <div className="relative">
+          <TableSkeleton kind="form" rows={8} visible={showSkel} transitionMs={260}/>
+          <div style={{opacity: showSkel ? 0 : 1, transition:'opacity 200ms ease-out'}} aria-hidden={showSkel}>
+            <div className="table-wrap">
+          <table className="data-table min-w-[1120px]">
+            <thead><tr>
+              <th className="w-[44px]"><input type="checkbox" checked={rows.length>0 && selected.size===rows.length} onChange={toggleAll} aria-label="Chọn tất cả"/></th>
+              <th>Hành động</th><th>Form</th><th>Tên tác vụ</th><th>Mã</th><th>Mã tác vụ</th><th>PIC</th><th>Thời gian gửi</th><th>Trạng thái</th>
+            </tr></thead>
+            <tbody>{rows.length ? rows.map((it,idx)=><tr key={`${it.id}-${idx}`} className="border-t">
+              <td><input type="checkbox" checked={selected.has(rowKey(it,idx))} onChange={()=>toggleOne(it,idx)} aria-label="Chọn form"/></td>
+              <td><div className="action-stack">
+                <button className="btn btn-sm btn-primary" onClick={()=>openAction('pdform_approve',[it])} disabled={loading}>Duyệt</button>
+                <button className="btn btn-sm btn-danger" onClick={()=>openAction('pdform_reject',[it])} disabled={loading}>Từ chối</button>
+              </div></td>
+              <td>{it.formLink ? <a className="code-link" href={/^https?:\/\//.test(it.formLink)?it.formLink:`https://${it.formLink}`} target="_blank" rel="noreferrer">Xem form</a> : '-'}</td>
+              <td><div className="two-line max-w-[340px]"><b className="truncate">{escapeText(it.taskName) || '-'}</b><span className="truncate">{escapeText(it.subtaskCode)}</span></div></td>
+              <td>{escapeText(it.taskCode) || '-'}</td>
+              <td><span className="code-link">{escapeText(it.subtaskCode) || '-'}</span></td>
+              <td>{escapeText(it.pic) || '-'}</td>
+              <td>{fmtDate(it.sentTime) || it.sentTime || '-'}</td>
+              <td><span className="pill bg-slate-50 text-slate-700 border-slate-200">{escapeText(it.status) || '-'}</span></td>
+            </tr>) : <tr><td className="empty-state" colSpan="9"><b>Không có form phù hợp</b>Thử đổi bộ lọc hoặc tải lại danh sách.</td></tr>}</tbody>
+          </table>
+            </div>
+          </div>
+        </div>
+        <ToastHost items={toast} onDismiss={(id)=>setToast(cur=>cur.filter(x=>x.id!==id))}/>
+        <Modal
+          open={modal.open}
+          title={modal.action==='pdform_approve' ? 'Xác nhận duyệt form' : 'Từ chối form'}
+          onClose={()=>setModal({open:false, action:'', targets:[], comment:'', reason:''})}
+          footer={
+            <>
+              <button className="btn btn-ghost" onClick={()=>setModal({open:false, action:'', targets:[], comment:'', reason:''})}>Hủy</button>
+              <button className="btn btn-primary" onClick={submitAction} disabled={loading}>{loading ? <span className="spinner"></span> : 'Gửi'}</button>
+            </>
+          }
+        >
+          <div className="text-sm text-slate-600 mb-4">
+            Đang thao tác trên <b>{modal.targets.length}</b> form.
+          </div>
+          {modal.action === 'pdform_reject' ? (
+            <>
+              <label className="text-sm font-extrabold">Lý do từ chối</label>
+              <textarea className="field w-full mt-1" rows="4" value={modal.reason} onChange={e=>setModal(m=>({...m, reason:e.target.value}))} placeholder="Nhập lý do (bắt buộc)"></textarea>
+            </>
+          ) : (
+            <>
+              <label className="text-sm font-extrabold">Bình luận</label>
+              <textarea className="field w-full mt-1" rows="4" value={modal.comment} onChange={e=>setModal(m=>({...m, comment:e.target.value}))} placeholder="Nhập bình luận (không bắt buộc)"></textarea>
+              <div className="text-xs text-slate-500 mt-2">Ghi chú: hệ thống chỉ gửi bình luận khi Duyệt (tương thích webhook hiện tại).</div>
+            </>
+          )}
+        </Modal>
+      </div>;
+    }
+
+    function Users(){
+      const users = [
+        ['admin','Quản trị hệ thống','Admin','Toàn hệ thống'],
+        ['truongphong','Trưởng phòng DQA','Trưởng phòng','Khối trưởng phòng'],
+        ['linh','Nguyễn Văn Linh','Trưởng nhóm','Nhóm Linh'],
+        ['hieu','Nguyễn Văn Hiếu','Trưởng nhóm','Nhóm Hiếu']
+      ];
+      return <div className="card p-5"><h2 className="font-extrabold text-lg mb-4">Người dùng</h2><div className="table-wrap"><table className="w-full text-sm"><thead className="bg-slate-50"><tr><th className="text-left p-3">Account</th><th className="text-left p-3">Tên</th><th className="text-left p-3">Vai trò</th><th className="text-left p-3">Phạm vi</th></tr></thead><tbody>{users.map(u=><tr className="border-t" key={u[0]}>{u.map(x=><td className="p-3" key={x}>{x}</td>)}</tr>)}</tbody></table></div></div>;
+    }
+    function Settings(){
+      return <div className="card p-5"><h2 className="font-extrabold text-lg mb-3">Cài đặt</h2><div className="grid md:grid-cols-2 gap-3 text-sm"><div className="border rounded-xl p-4"><b>Frontend</b><p className="text-slate-500 mt-1">React SPA.</p></div><div className="border rounded-xl p-4"><b>Backend</b><p className="text-slate-500 mt-1">Node.js session + API proxy.</p></div><div className="border rounded-xl p-4"><b>Phân quyền</b><p className="text-slate-500 mt-1">Ẩn/hiện module theo vai trò.</p></div><div className="border rounded-xl p-4"><b>API</b><p className="text-slate-500 mt-1">Trình duyệt gọi `/api/...`.</p></div></div></div>;
+    }
+
+    function App(){
+      const [user,setUser]=useState(null);
+      const [checking,setChecking]=useState(true);
+      useEffect(()=>{ api('/api/session').then(data=>setUser(data.user)).finally(()=>setChecking(false)); },[]);
+      async function logout(){ await fetch('/api/logout',{method:'POST', credentials:'same-origin'}); setUser(null); }
+      if (checking) return <div className="min-h-screen grid place-items-center"><span className="spinner"></span></div>;
+      if (!user) return <Login onLogin={setUser}/>;
+      return <Layout user={user} onLogout={logout}/>;
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

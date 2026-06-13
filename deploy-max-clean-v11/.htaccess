@@ -1,0 +1,3 @@
+# TNreview / DQA TaskHub
+# cPanel Node.js App sẽ ghi thêm cấu hình Passenger và biến môi trường vào file này.
+# Giữ file này trong thư mục Application root (public_html/pheduyet).

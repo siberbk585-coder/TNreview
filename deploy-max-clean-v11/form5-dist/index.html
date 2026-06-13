@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DQA Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+      html.dqa-embed, html.dqa-embed body { height: 100%; margin: 0; overflow: hidden; }
+      html.dqa-embed #root { height: 100%; min-height: 100%; }
+      html.dqa-embed main > header { display: none !important; }
+      html.dqa-embed main > div.mb-4,
+      html.dqa-embed main > div[class*="flex-1"] > div.mb-4 { display: none !important; }
+      html.dqa-embed main > div[class*="flex-1"],
+      html.dqa-embed main > div[class*="p-4"] { padding: 0 !important; }
+      html.dqa-embed .flex.min-h-\[100dvh\],
+      html.dqa-embed [class*="min-h-[100dvh]"] {
+        min-height: 100% !important;
+        height: 100% !important;
+        background-image: none !important;
+      }
+    </style>
+    <link rel="stylesheet" crossorigin href="/form5/assets/index-B4V6z5y6.css">
+    <script>
+      (async function () {
+        var p = new URLSearchParams(location.search);
+        window.__DQA_VIEW__ = p.get('view') || '';
+        var isEmbed = p.get('embed') === '1';
+        if (isEmbed) document.documentElement.classList.add('dqa-embed');
+        if (isEmbed) {
+          try {
+            var r = await fetch('/api/portal/embed-user', { credentials: 'same-origin' });
+            if (r.ok) {
+              var d = await r.json();
+              if (d && d.portalUser) {
+                localStorage.setItem('dqa.user', d.portalUser);
+                window.__DQA_EMBED_USER__ = d.portalUser;
+              }
+            }
+          } catch (_) {}
+        }
+        var s = document.createElement('script');
+        s.type = 'module';
+        s.crossOrigin = 'anonymous';
+        s.src = '/form5/assets/index-CHVuYQMq.js';
+        document.head.appendChild(s);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

@@ -1,0 +1,1449 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Tổng Hợp Thẻ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <style>
+    .invalid { border-color: #dc2626 !important; background: #fff8f8 !important; }
+    .tab-active { background: #dbeafe; color: #1d4ed8; font-weight: 700; }
+    .tab-inactive { background: #f1f5f9; color: #475569; }
+  </style>
+</head>
+<body class="bg-slate-50 p-4 text-sm text-slate-800">
+  <div class="mx-auto max-w-[1500px] space-y-4">
+    <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h1 class="text-2xl font-bold text-slate-900">Thẻ C1 / Thẻ L</h1>
+      <p class="mt-1 text-slate-500">Quản lý dữ liệu thẻ KPI nhóm SPM</p>
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <button id="tabBtnC1" type="button" class="rounded-lg px-4 py-2 text-sm tab-active" onclick="switchTab('c1')">Quản lý Thẻ C1</button>
+        <button id="tabBtnL" type="button" class="rounded-lg px-4 py-2 text-sm tab-inactive" onclick="switchTab('l')">Quản lý Thẻ L</button>
+      </div>
+    </section>
+
+    <div id="tab-c1" class="space-y-4">
+      <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-xl font-bold text-slate-900">Nhập dữ liệu tổng hợp thẻ C1</h2>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="filterMonthC1" class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700">
+              <option value="all">Tất cả các tháng</option>
+              <option value="1">Tháng 1</option>
+              <option value="2">Tháng 2</option>
+              <option value="3">Tháng 3</option>
+              <option value="4">Tháng 4</option>
+              <option value="5">Tháng 5</option>
+              <option value="6">Tháng 6</option>
+              <option value="7">Tháng 7</option>
+              <option value="8">Tháng 8</option>
+              <option value="9">Tháng 9</option>
+              <option value="10">Tháng 10</option>
+              <option value="11">Tháng 11</option>
+              <option value="12">Tháng 12</option>
+            </select>
+            <button type="button" onclick="openModalC1()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">+ Tạo tác vụ</button>
+            <button type="button" onclick="exportMonthlyAll()" class="rounded-lg border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700">Xuất tổng hợp tháng (C1 + L)</button>
+            <button id="btnRefresh" type="button" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>Tải lại</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="overflow-x-auto">
+          <table id="tableC1" class="min-w-max border-collapse">
+            <thead class="bg-blue-50">
+              <tr>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">PIC</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Thao tác</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900 min-w-[250px]">Chủ đề</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Ngày bắt đầu</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Deadline</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Ngày hoàn thành</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Thời gian thực hiện</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">File BC đính kèm</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Link KOI</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Số lượng</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Mục tiêu</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Trạng thái</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900 min-w-[250px]">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody id="tableBodyC1"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div id="tab-l" class="hidden space-y-4">
+      <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-xl font-bold text-slate-900">Nhập dữ liệu tổng hợp thẻ L</h2>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="filterMonthL" class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700">
+              <option value="all">Tất cả các tháng</option>
+              <option value="1">Tháng 1</option>
+              <option value="2">Tháng 2</option>
+              <option value="3">Tháng 3</option>
+              <option value="4">Tháng 4</option>
+              <option value="5">Tháng 5</option>
+              <option value="6">Tháng 6</option>
+              <option value="7">Tháng 7</option>
+              <option value="8">Tháng 8</option>
+              <option value="9">Tháng 9</option>
+              <option value="10">Tháng 10</option>
+              <option value="11">Tháng 11</option>
+              <option value="12">Tháng 12</option>
+            </select>
+            <button type="button" onclick="openModalL()" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">+ Tạo tác vụ</button>
+            <button type="button" onclick="exportMonthlyAll()" class="rounded-lg border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700">Xuất tổng hợp tháng (C1 + L)</button>
+            <button id="btnRefreshL" type="button" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>Tải lại</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="overflow-x-auto">
+          <table id="tableL" class="min-w-max border-collapse">
+            <thead class="bg-blue-50">
+              <tr>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">PIC</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Thao tác</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900 min-w-[250px]">Chủ đề</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Ngày bắt đầu</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Deadline</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Ngày hoàn thành</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Thời gian thực hiện</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">File đính kèm</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">File biên bản đào tạo</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Số lượng</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Mục tiêu</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900">Trạng thái</th>
+                <th class="whitespace-nowrap border border-slate-200 px-4 py-3 text-center align-middle text-xs font-bold uppercase tracking-wide text-blue-900 min-w-[250px]">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody id="tableBodyL"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="taskModalC1" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+    <div class="w-full max-w-6xl rounded-xl bg-white shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+        <h2 class="text-lg font-bold text-slate-900">Nhập dữ liệu tổng hợp thẻ C1</h2>
+        <button type="button" onclick="closeModalC1()" class="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700">✕</button>
+      </div>
+      <div class="max-h-[90vh] overflow-y-auto p-5">
+        <form id="progressFormC1" class="grid grid-cols-1 gap-3 md:grid-cols-4">
+          <div class="space-y-1">
+            <label for="picC1" class="block text-xs font-semibold text-slate-600">TÊN PIC</label>
+            <select id="picC1" name="pic" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+              <option value="" selected>Chọn PIC</option>
+              <option>Trần Hiếu Nghĩa</option><option>Vũ Thị Hằng</option><option>Đào Tuấn Kỳ</option>
+              <option>Nguyễn Hữu Thịnh</option><option>Bùi Đặng Quốc Huy</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label for="soLuongC1" class="block text-xs font-semibold text-slate-600">Số lượng</label>
+            <input id="soLuongC1" name="soLuong" type="number" min="0" placeholder="0" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+          </div>
+          <div class="space-y-1">
+            <label for="mucTieuC1" class="block text-xs font-semibold text-slate-600">Mục tiêu</label>
+            <input id="mucTieuC1" name="mucTieu" type="number" min="1" placeholder="1" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+          </div>
+          <div class="space-y-1 md:col-span-4">
+            <label class="block text-xs font-semibold text-slate-600">Danh sách</label>
+            <div id="subTaskContainerC1" class="space-y-2 rounded-lg border border-slate-200 p-3"></div>
+          </div>
+          <div class="space-y-1 md:col-span-4">
+            <label for="ghiChuC1" class="block text-xs font-semibold text-slate-600">Ghi chú</label>
+            <textarea id="ghiChuC1" name="ghiChu" rows="2" class="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Ghi chú thêm..."></textarea>
+          </div>
+          <div class="md:col-span-4 mt-1 flex justify-end gap-2">
+            <button class="rounded-lg border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700" id="submitBtnC1" type="submit">Thêm vào bảng</button>
+            <button type="button" onclick="closeModalC1()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Hủy</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="taskModalL" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+    <div class="w-full max-w-5xl rounded-xl bg-white shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+        <h2 class="text-lg font-bold text-slate-900">Nhập dữ liệu tổng hợp thẻ</h2>
+        <button type="button" onclick="closeModalL()" class="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700">✕</button>
+      </div>
+      <div class="max-h-[90vh] overflow-y-auto p-5">
+        <form id="progressFormL" class="grid grid-cols-1 gap-3 md:grid-cols-4">
+          <div class="space-y-1">
+            <label for="picL" class="block text-xs font-semibold text-slate-600">TÊN PIC</label>
+            <select id="picL" name="picL" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+              <option value="" selected>Chọn PIC</option>
+              <option>Bùi Đặng Quốc Huy</option><option>Trần Hiếu Nghĩa</option><option>Vũ Thị Hằng</option>
+              <option>Đào Tuấn Kỳ</option><option>Nguyễn Hữu Thịnh</option><option>Nguyễn Văn Hiếu</option>
+              <option>Nguyễn Văn Linh</option><option>Đào Hoàng Dương</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label for="soLuongL" class="block text-xs font-semibold text-slate-600">Số lượng</label>
+            <input id="soLuongL" name="soLuongL" type="number" min="0" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="0">
+          </div>
+          <div class="space-y-1">
+            <label for="mucTieuL" class="block text-xs font-semibold text-slate-600">Mục tiêu</label>
+            <input id="mucTieuL" name="mucTieuL" type="number" min="1" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="1">
+          </div>
+          <div class="space-y-1 md:col-span-4">
+            <label class="block text-xs font-semibold text-slate-600">Danh sách</label>
+            <div id="subTaskContainerL" class="space-y-2 rounded-lg border border-slate-200 p-3"></div>
+          </div>
+          <div class="space-y-1 md:col-span-4">
+            <label for="ghiChuL" class="block text-xs font-semibold text-slate-600">Ghi chú</label>
+            <textarea id="ghiChuL" name="ghiChuL" rows="2" class="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Ghi chú thêm..."></textarea>
+          </div>
+          <div class="md:col-span-4 mt-1 flex justify-end gap-2">
+            <button class="rounded-lg border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700" id="submitBtnL" type="submit">Thêm vào bảng</button>
+            <button type="button" onclick="closeModalL()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Hủy</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY_C1 = "di_spm_rows_c1_v1";
+    const STORAGE_KEY_L = "di_spm_rows_l_v1";
+    const STORAGE_KEY_ACTIVE_TAB = "di_spm_active_tab";
+    const DANH_SACH_PIC_C1 = ["Trần Hiếu Nghĩa", "Vũ Thị Hằng", "Đào Tuấn Kỳ", "Nguyễn Hữu Thịnh", "Bùi Đặng Quốc Huy"];
+    const DANH_SACH_PIC_L = ["Bùi Đặng Quốc Huy", "Trần Hiếu Nghĩa", "Vũ Thị Hằng", "Đào Tuấn Kỳ", "Nguyễn Hữu Thịnh", "Nguyễn Văn Hiếu", "Nguyễn Văn Linh", "Đào Hoàng Dương"];
+
+    const tabC1 = document.getElementById("tab-c1");
+    const tabL = document.getElementById("tab-l");
+    const tabBtnC1 = document.getElementById("tabBtnC1");
+    const tabBtnL = document.getElementById("tabBtnL");
+
+    const taskModalC1 = document.getElementById("taskModalC1");
+    const formC1 = document.getElementById("progressFormC1");
+    const tableBodyC1 = document.getElementById("tableBodyC1");
+    const submitBtnC1 = document.getElementById("submitBtnC1");
+    const filterMonthC1 = document.getElementById("filterMonthC1");
+    const subTaskContainerC1 = document.getElementById("subTaskContainerC1");
+    const clearBtnC1 = document.getElementById("clearBtnC1");
+    let editingIdC1 = null;
+    let editingModeC1 = "all";
+    let preservedSubTasksC1 = [];
+
+    const taskModalL = document.getElementById("taskModalL");
+    const formL = document.getElementById("progressFormL");
+    const tableBodyL = document.getElementById("tableBodyL");
+    const submitBtnL = document.getElementById("submitBtnL");
+    const filterMonthL = document.getElementById("filterMonthL");
+    const subTaskContainerL = document.getElementById("subTaskContainerL");
+    const clearBtnL = document.getElementById("clearBtnL");
+    let editingIdL = null;
+    let editingModeL = "all";
+    let preservedSubTasksL = [];
+
+    const parseDate = (v) => (v ? new Date(`${v}T00:00:00`).getTime() : null);
+    const parseDateOnly = (v) => {
+      if (!v) return null;
+      const d = new Date(`${v}T00:00:00`);
+      if (Number.isNaN(d.getTime())) return null;
+      d.setHours(0, 0, 0, 0);
+      return d;
+    };
+    const formatDate = (v) => (v ? `${v.split("-")[2]}/${v.split("-")[1]}/${v.split("-")[0]}` : "");
+    const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    const toNumber = (v) => Number(v) || 0;
+    const isPdf = (file) => file && (file.type === "application/pdf" || String(file.name || "").toLowerCase().endsWith(".pdf"));
+    const normalizeUrl = (url) => {
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^https?:\/\//i.test(raw) || /^data:/i.test(raw)) return raw;
+      return `https://${raw}`;
+    };
+    const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result || ""));
+      r.onerror = () => reject(new Error("read_failed"));
+      r.readAsDataURL(file);
+    });
+    const monthFromDateStr = (v) => {
+      if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+      const m = Number(v.slice(5, 7));
+      return Number.isFinite(m) ? m : null;
+    };
+    const formatYYYYMMDD = (date) => {
+      const yy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, "0");
+      const dd = String(date.getDate()).padStart(2, "0");
+      return `${yy}-${mm}-${dd}`;
+    };
+    const monthFromYmd = (v) => {
+      const d = parseDateOnly(v);
+      if (!d) return null;
+      return d.getMonth() + 1;
+    };
+    const todayYmd = formatYYYYMMDD(new Date());
+
+    function switchTab(tab) {
+      const isC1 = tab === "c1";
+      tabC1.classList.toggle("hidden", !isC1);
+      tabL.classList.toggle("hidden", isC1);
+      tabBtnC1.classList.toggle("tab-active", isC1);
+      tabBtnC1.classList.toggle("tab-inactive", !isC1);
+      tabBtnL.classList.toggle("tab-active", !isC1);
+      tabBtnL.classList.toggle("tab-inactive", isC1);
+      localStorage.setItem(STORAGE_KEY_ACTIVE_TAB, isC1 ? "c1" : "l");
+    }
+
+    function openModalC1() {
+      if (!editingIdC1 && formC1?.elements?.pic) formC1.elements.pic.disabled = false;
+      if (!editingIdC1 && formC1?.elements?.mucTieu) {
+        formC1.elements.soLuong.value = "1";
+        formC1.elements.mucTieu.value = "1";
+        clearError(formC1.elements.soLuong);
+        clearError(formC1.elements.mucTieu);
+        clearFieldInvalid(formC1.elements.soLuong);
+        clearFieldInvalid(formC1.elements.mucTieu);
+        buildSubTaskRows(subTaskContainerC1, 1, [], { withFile: true, withKoi: true, pdfOnly: true, dateLimitMode: "quarter" });
+      }
+      taskModalC1.classList.remove("hidden");
+      taskModalC1.classList.add("flex");
+    }
+    function closeModalC1() {
+      taskModalC1.classList.add("hidden");
+      taskModalC1.classList.remove("flex");
+      editingIdC1 = null;
+      editingModeC1 = "all";
+      preservedSubTasksC1 = [];
+      if (formC1?.elements?.pic) formC1.elements.pic.disabled = false;
+    }
+    function openModalL() {
+      if (!editingIdL && formL?.elements?.picL) formL.elements.picL.disabled = false;
+      if (!editingIdL && formL?.elements?.mucTieuL) {
+        formL.elements.soLuongL.value = "1";
+        formL.elements.mucTieuL.value = "1";
+        clearError(formL.elements.soLuongL);
+        clearError(formL.elements.mucTieuL);
+        clearFieldInvalid(formL.elements.soLuongL);
+        clearFieldInvalid(formL.elements.mucTieuL);
+        buildSubTaskRows(subTaskContainerL, 1, [], { withFile: true, withKoi: false, withKoiFile: true, koiFilePdfOnly: true, koiLabelText: "File biên bản đào tạo", dateLimitMode: "month" });
+      }
+      taskModalL.classList.remove("hidden");
+      taskModalL.classList.add("flex");
+    }
+    function closeModalL() {
+      taskModalL.classList.add("hidden");
+      taskModalL.classList.remove("flex");
+      editingIdL = null;
+      editingModeL = "all";
+      preservedSubTasksL = [];
+      if (formL?.elements?.picL) formL.elements.picL.disabled = false;
+    }
+
+    window.switchTab = switchTab;
+    window.openModalC1 = openModalC1;
+    window.closeModalC1 = closeModalC1;
+    window.openModalL = openModalL;
+    window.closeModalL = closeModalL;
+
+    /** Trạng thái theo chuẩn mới, so sánh theo ngày thực tế. */
+    function statusFromDates(deadlineStr, finishStr) {
+      const deadline = parseDateOnly(deadlineStr);
+      const done = parseDateOnly(finishStr);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (!deadline) return "";
+      if (!done) {
+        if (today.getTime() > deadline.getTime()) return "Trễ hạn";
+        return "Đang triển khai";
+      }
+      if (done.getTime() > deadline.getTime()) return "Hoàn thành chậm tiến độ";
+      return "Hoàn thành đúng tiến độ";
+    }
+
+    function statusClass(status) {
+      if (status === "Đang triển khai") return "bg-blue-100 text-blue-700";
+      if (status === "Trễ hạn") return "bg-red-100 text-red-700";
+      if (status === "Hoàn thành chậm tiến độ") return "bg-orange-100 text-orange-700";
+      if (status === "Hoàn thành đúng tiến độ") return "bg-green-100 text-green-700";
+      if (status === "Hoàn thành sớm tiến độ") return "bg-emerald-100 text-emerald-700";
+      return "";
+    }
+
+    function statusBadgeHtml(status) {
+      const cls = statusClass(status);
+      if (!status || !cls) return status || "";
+      return `<span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold ${cls}">${status}</span>`;
+    }
+
+    function calcSubTask(startStr, deadlineStr, finishStr) {
+      const startDate = parseDateOnly(startStr);
+      const deadlineDate = parseDateOnly(deadlineStr);
+      const finishDate = parseDateOnly(finishStr);
+      const status = statusFromDates(deadlineStr, finishStr);
+      let duration = "";
+      if (startDate && (finishDate || deadlineDate)) {
+        const end = finishDate || deadlineDate;
+        const diff = Math.ceil((end.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        duration = `${diff} ngày`;
+      }
+      return { duration, status };
+    }
+
+    function createDefaultTask(pic) {
+      return {
+        id: uid(),
+        pic,
+        soLuong: "",
+        mucTieu: "",
+        subTasks: [],
+        fileDinhKem: "",
+        linkKoi: "",
+        ghiChu: ""
+      };
+    }
+    function getPicListByKey(key) {
+      return key === STORAGE_KEY_C1 ? DANH_SACH_PIC_C1 : DANH_SACH_PIC_L;
+    }
+    function rowsFromStorage(key) {
+      let stored = [];
+      try {
+        stored = JSON.parse(localStorage.getItem(key) || "[]");
+      } catch {
+        stored = [];
+      }
+      const rows = Array.isArray(stored) ? stored : [];
+      const normalized = rows.map((r) => ({ ...r, subTasks: Array.isArray(r?.subTasks) ? r.subTasks : [] }));
+      const picList = getPicListByKey(key);
+      const missing = picList.filter((pic) => !normalized.some((r) => String(r.pic || "").trim() === pic));
+      const merged = [...normalized, ...missing.map((pic) => createDefaultTask(pic))];
+      if (missing.length > 0 || normalized.length === 0) saveRows(key, merged);
+      return merged;
+    }
+    function saveRows(key, rows) { localStorage.setItem(key, JSON.stringify(rows)); }
+    function renderEmptySubTaskState(container) {
+      container.innerHTML = '<div class="rounded-md border border-dashed border-slate-300 px-3 py-4 text-xs italic text-slate-500">Nhập Mục tiêu để tạo dòng sub-task.</div>';
+    }
+    function clearModalData(isC1) {
+      const form = isC1 ? formC1 : formL;
+      const targetContainer = isC1 ? subTaskContainerC1 : subTaskContainerL;
+      const buildOptions = isC1
+        ? { withFile: true, withKoi: true, pdfOnly: true, dateLimitMode: "quarter" }
+        : { withFile: true, withKoi: false, withKoiFile: true, koiFilePdfOnly: true, koiLabelText: "File biên bản đào tạo", dateLimitMode: "month" };
+      if (isC1) {
+        form.elements.soLuong.value = "1";
+        form.elements.mucTieu.value = "1";
+        form.elements.ghiChu.value = "";
+        clearError(form.elements.soLuong);
+        clearError(form.elements.mucTieu);
+        clearFieldInvalid(form.elements.soLuong);
+        clearFieldInvalid(form.elements.mucTieu);
+      } else {
+        form.elements.soLuongL.value = "1";
+        form.elements.mucTieuL.value = "1";
+        form.elements.ghiChuL.value = "";
+        clearError(form.elements.soLuongL);
+        clearError(form.elements.mucTieuL);
+        clearFieldInvalid(form.elements.soLuongL);
+        clearFieldInvalid(form.elements.mucTieuL);
+      }
+      const rows = Array.from(targetContainer.querySelectorAll('[data-sub-row="1"]'));
+      if (rows.length === 0) {
+        buildSubTaskRows(targetContainer, 1, [], buildOptions);
+        return;
+      }
+      rows.forEach((row) => {
+        row.dataset.existingFileName = "";
+        row.dataset.existingFileDataUrl = "";
+        row.dataset.existingKoiFileName = "";
+        row.dataset.existingKoiFileDataUrl = "";
+        row.querySelectorAll("input, textarea").forEach((input) => {
+          if (!(input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement)) return;
+          if (input.type === "file" || input.type === "date" || input.type === "text" || input.type === "url") {
+            input.value = "";
+          }
+          clearFieldInvalid(input);
+        });
+        const fileLabel = row.querySelector('[data-sub="fileLabel"]');
+        const koiFileLabel = row.querySelector('[data-sub="koiFileLabel"]');
+        if (fileLabel) fileLabel.textContent = "Chưa chọn file";
+        if (koiFileLabel) koiFileLabel.textContent = "Chưa chọn file";
+        syncSubTaskDateMin(row);
+        updateSubTaskPreview(row);
+      });
+    }
+    function getRowsForRender(key) {
+      const source = rowsFromStorage(key);
+      const picList = getPicListByKey(key);
+      return picList.map((pic) => source.find((r) => String(r.pic || "").trim() === pic) || createDefaultTask(pic));
+    }
+    function subTaskMatchesMonthRange(subTask, selectedMonth) {
+      const targetMonth = Number(selectedMonth);
+      if (!Number.isFinite(targetMonth)) return false;
+      const startMonth = monthFromYmd(subTask?.startDate || "");
+      return Boolean(startMonth && startMonth === targetMonth);
+    }
+    function validateDateWindowRule(container, isC1) {
+      const rows = Array.from(container.querySelectorAll('[data-sub-row="1"]'));
+      for (const row of rows) {
+        const startInput = row.querySelector('[data-sub="startDate"]');
+        const deadlineInput = row.querySelector('[data-sub="deadline"]');
+        const startDate = parseDateOnly(startInput?.value || "");
+        const deadlineDate = parseDateOnly(deadlineInput?.value || "");
+        if (!startDate || !deadlineDate) continue;
+        const limitDate = isC1 ? getQuarterEndDate(startDate) : getMonthEndDate(startDate);
+        const startYear = startDate.getFullYear();
+        const deadlineYear = deadlineDate.getFullYear();
+        const startMonth = startDate.getMonth() + 1;
+        const deadlineMonth = deadlineDate.getMonth() + 1;
+        if (limitDate && deadlineDate.getTime() > limitDate.getTime()) {
+          if (startInput) markFieldInvalid(startInput);
+          if (deadlineInput) markFieldInvalid(deadlineInput);
+          alert(isC1
+            ? "Lỗi Thẻ C1: Deadline không được vượt quá ngày cuối quý của Ngày bắt đầu."
+            : "Lỗi Thẻ L: Deadline không được vượt quá ngày cuối cùng của tháng bắt đầu.");
+          return false;
+        }
+        if (!isC1) {
+          if (startYear !== deadlineYear || startMonth !== deadlineMonth) {
+            if (startInput) markFieldInvalid(startInput);
+            if (deadlineInput) markFieldInvalid(deadlineInput);
+            alert("Lỗi Thẻ L: Ngày bắt đầu và Deadline bắt buộc phải nằm gọn trong cùng một tháng!");
+            return false;
+          }
+          continue;
+        }
+        if (startYear !== deadlineYear || (deadlineMonth - startMonth) > 2) {
+          if (startInput) markFieldInvalid(startInput);
+          if (deadlineInput) markFieldInvalid(deadlineInput);
+          alert("Lỗi Thẻ C1: Thời gian triển khai dự án chỉ được phép kéo dài tối đa 3 tháng liên tiếp trong cùng một năm!");
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function clearError(input) {
+      input.classList.remove("invalid");
+      const e = document.getElementById(`${input.id}Error`);
+      if (e) e.textContent = "";
+    }
+    function markFieldInvalid(input) {
+      input.classList.add("border-red-500", "bg-red-50");
+    }
+    function clearFieldInvalid(input) {
+      input.classList.remove("border-red-500", "bg-red-50");
+    }
+    function previewClass(status) {
+      if (status === "Trễ hạn") return "text-red-600";
+      if (status === "Hoàn thành chậm tiến độ") return "text-orange-600";
+      if (status === "Hoàn thành đúng tiến độ") return "text-green-600";
+      if (status === "Đang triển khai") return "text-blue-600";
+      return "text-slate-500";
+    }
+    function updateSubTaskPreview(row) {
+      const startDate = row.querySelector('[data-sub="startDate"]').value;
+      const deadline = row.querySelector('[data-sub="deadline"]').value;
+      const finishDate = row.querySelector('[data-sub="finishDate"]').value;
+      const preview = row.querySelector('[data-sub="preview"]');
+      if (!preview) return;
+      if (!startDate || !deadline) {
+        preview.className = "text-xs font-medium mt-1 text-slate-400";
+        preview.textContent = "Thời gian thực hiện: -- | Trạng thái: --";
+        return;
+      }
+      const result = calcSubTask(startDate, deadline, finishDate);
+      preview.className = `text-xs font-medium mt-1 ${previewClass(result.status)}`;
+      preview.textContent = `Thời gian thực hiện: ${result.duration || "--"} | Trạng thái: ${result.status || "--"}`;
+    }
+    function syncSubTaskDateMin(row) {
+      const startInput = row.querySelector('[data-sub="startDate"]');
+      const deadlineInput = row.querySelector('[data-sub="deadline"]');
+      const finishInput = row.querySelector('[data-sub="finishDate"]');
+      if (!startInput || !deadlineInput || !finishInput) return;
+      const startVal = String(startInput.value || "");
+      const dateLimitMode = row.dataset.dateLimitMode || "quarter";
+      if (startVal) {
+        const parts = startVal.split("-");
+        const y = Number.parseInt(parts[0], 10);
+        const m = Number.parseInt(parts[1], 10);
+        let limitYmd = "";
+        if (Number.isFinite(y) && Number.isFinite(m)) {
+          if (dateLimitMode === "month") {
+            const lastDay = new Date(y, m, 0);
+            limitYmd = formatYYYYMMDD(lastDay);
+          } else {
+            const q = Math.ceil(m / 3);
+            const endMonth = q * 3;
+            const lastDay = new Date(y, endMonth, 0);
+            limitYmd = formatYYYYMMDD(lastDay);
+          }
+        }
+        deadlineInput.min = startVal;
+        finishInput.min = startVal;
+        if (limitYmd) {
+          deadlineInput.max = limitYmd;
+          finishInput.max = todayYmd;
+          if (!String(deadlineInput.value || "").trim()) {
+            deadlineInput.value = limitYmd;
+          }
+          if (deadlineInput.value && parseDateOnly(deadlineInput.value) && parseDateOnly(deadlineInput.value).getTime() > parseDateOnly(limitYmd).getTime()) {
+            deadlineInput.value = limitYmd;
+          }
+        }
+      } else {
+        deadlineInput.removeAttribute("min");
+        finishInput.removeAttribute("min");
+        deadlineInput.removeAttribute("max");
+        finishInput.max = todayYmd;
+      }
+    }
+    function getQuarterEndDate(dateObj) {
+      if (!dateObj) return null;
+      const month = dateObj.getMonth() + 1;
+      const quarter = Math.ceil(month / 3);
+      const quarterEndMonth = quarter * 3;
+      return new Date(dateObj.getFullYear(), quarterEndMonth, 0);
+    }
+    function getMonthEndDate(dateObj) {
+      if (!dateObj) return null;
+      return new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0);
+    }
+    function setError(input, message) {
+      input.classList.add("invalid");
+      let e = document.getElementById(`${input.id}Error`);
+      if (!e) {
+        e = document.createElement("span");
+        e.id = `${input.id}Error`;
+        e.className = "text-xs text-red-600";
+        input.insertAdjacentElement("afterend", e);
+      }
+      e.textContent = message;
+    }
+
+    function buildSubTaskRows(container, count, tasks = [], options = {
+      withFile: false, withKoi: false, pdfOnly: false, withKoiFile: false, koiFilePdfOnly: false, koiLabelText: "Link KOI", dateLimitMode: "quarter"
+    }) {
+      const { withFile, withKoi, pdfOnly, withKoiFile, koiFilePdfOnly, koiLabelText, dateLimitMode } = options;
+      const n = Math.max(1, Number(count) || 1);
+      container.innerHTML = "";
+      for (let i = 0; i < n; i += 1) {
+        const item = tasks[i] || {};
+        const row = document.createElement("div");
+        row.className = "mb-4 space-y-3 rounded-md border border-slate-200 bg-slate-50 p-4";
+        row.dataset.subRow = "1";
+        row.dataset.existingFileName = item.fileName || "";
+        row.dataset.existingFileDataUrl = item.fileDataUrl || "";
+        row.dataset.existingKoiFileName = item.koiFileName || "";
+        row.dataset.existingKoiFileDataUrl = item.koiFileDataUrl || "";
+        row.dataset.dateLimitMode = dateLimitMode || "quarter";
+        const koiColHtml = withKoiFile
+          ? `<div class="space-y-1"><label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">${koiLabelText || "File biên bản đào tạo"}</label><input data-sub="koiFile" type="file" ${koiFilePdfOnly ? 'accept=".pdf,application/pdf"' : ""} class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs file:mr-2 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-100"><div data-sub="koiFileLabel" class="text-[11px] text-slate-500">${item.koiFileName || "Chưa chọn file"}</div>${koiFilePdfOnly ? '<div class="text-[11px] text-slate-500">Chỉ PDF</div>' : ""}</div>`
+          : `<div class="space-y-1"><label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">${koiLabelText || "Link KOI"}</label><input data-sub="linkKoi" value="${String(item.linkKoi || "").replace(/"/g, "&quot;")}" type="url" title="Link KOI" placeholder="${withKoi ? "https://..." : "Không áp dụng"}" ${withKoi ? "" : "disabled"} class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm ${withKoi ? "" : "bg-slate-100 text-slate-400"}"></div>`;
+        row.innerHTML = `
+          <div class="space-y-1">
+            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Chủ đề</label>
+            <input data-sub="title" value="${String(item.title || "").replace(/"/g, "&quot;")}" type="text" title="Chủ đề" placeholder="Chủ đề ${i + 1}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+          </div>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="space-y-1"><label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Ngày bắt đầu</label><input data-sub="startDate" value="${item.startDate || ""}" type="date" title="Ngày bắt đầu" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+            <div class="space-y-1"><label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Deadline</label><input data-sub="deadline" value="${item.deadline || ""}" type="date" title="Deadline" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+            <div class="space-y-1"><label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Ngày hoàn thành</label><input data-sub="finishDate" value="${item.finishDate || ""}" type="date" title="Ngày hoàn thành" max="${todayYmd}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+          </div>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="space-y-1 ${withFile ? "" : "opacity-40"}"><label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">File</label><input data-sub="file" type="file" ${withFile ? "" : "disabled"} ${pdfOnly ? 'accept=".pdf,application/pdf"' : ""} class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs file:mr-2 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-100"><div data-sub="fileLabel" class="text-[11px] text-slate-500">${item.fileName || "Chưa chọn file"}</div>${pdfOnly ? '<div data-sub="filePdfHint" class="text-[11px] text-slate-500">Chỉ PDF</div>' : ""}</div>
+            ${koiColHtml}
+          </div>
+          <div data-sub="preview" class="text-xs font-medium mt-1 text-slate-400">Thời gian thực hiện: -- | Trạng thái: --</div>
+        `;
+        row.querySelectorAll("input").forEach((input) => {
+          input.addEventListener("input", () => {
+            clearFieldInvalid(input);
+            syncSubTaskDateMin(row);
+            updateSubTaskPreview(row);
+          });
+          input.addEventListener("change", () => {
+            clearFieldInvalid(input);
+            syncSubTaskDateMin(row);
+            updateSubTaskPreview(row);
+          });
+        });
+        syncSubTaskDateMin(row);
+        const fileInput = row.querySelector('[data-sub="file"]');
+        const fileLabel = row.querySelector('[data-sub="fileLabel"]');
+        if (fileInput && fileLabel) {
+          fileInput.addEventListener("change", () => {
+            const f = fileInput.files && fileInput.files[0];
+            if (f && pdfOnly && !isPdf(f)) {
+              fileInput.value = "";
+              markFieldInvalid(fileInput);
+              fileLabel.textContent = row.dataset.existingFileName || "Chưa chọn file";
+              alert("Lỗi: Chỉ được chọn file PDF.");
+              return;
+            }
+            clearFieldInvalid(fileInput);
+            if (f) {
+              fileLabel.textContent = f.name;
+            } else {
+              fileLabel.textContent = row.dataset.existingFileName || "Chưa chọn file";
+            }
+          });
+        }
+        const koiFileInput = row.querySelector('[data-sub="koiFile"]');
+        const koiFileLabel = row.querySelector('[data-sub="koiFileLabel"]');
+        if (koiFileInput && koiFileLabel) {
+          koiFileInput.addEventListener("change", () => {
+            const f = koiFileInput.files && koiFileInput.files[0];
+            if (f && koiFilePdfOnly && !isPdf(f)) {
+              koiFileInput.value = "";
+              markFieldInvalid(koiFileInput);
+              koiFileLabel.textContent = row.dataset.existingKoiFileName || "Chưa chọn file";
+              alert("Lỗi: File biên bản đào tạo chỉ được chọn PDF.");
+              return;
+            }
+            clearFieldInvalid(koiFileInput);
+            koiFileLabel.textContent = f ? f.name : (row.dataset.existingKoiFileName || "Chưa chọn file");
+          });
+        }
+        updateSubTaskPreview(row);
+        container.appendChild(row);
+      }
+    }
+
+    function readSubTasks(container, options = { withFile: false, withKoi: false, withKoiFile: false }) {
+      const { withFile, withKoi, withKoiFile } = options;
+      const rows = Array.from(container.querySelectorAll('[data-sub-row="1"]'));
+      return rows.map((row) => {
+        const title = row.querySelector('[data-sub="title"]').value.trim();
+        const startDate = row.querySelector('[data-sub="startDate"]').value;
+        const deadline = row.querySelector('[data-sub="deadline"]').value;
+        const finishDate = row.querySelector('[data-sub="finishDate"]').value;
+        const linkKoi = withKoi ? String(row.querySelector('[data-sub="linkKoi"]')?.value || "").trim() : "";
+        const info = calcSubTask(startDate, deadline, finishDate);
+        return {
+          title,
+          startDate,
+          deadline,
+          finishDate,
+          duration: info.duration,
+          status: info.status,
+          linkKoi,
+          koiFileName: withKoiFile ? (row.dataset.existingKoiFileName || "") : "",
+          koiFileDataUrl: withKoiFile ? (row.dataset.existingKoiFileDataUrl || "") : "",
+          fileName: withFile ? (row.dataset.existingFileName || "") : "",
+          fileDataUrl: withFile ? (row.dataset.existingFileDataUrl || "") : ""
+        };
+      });
+    }
+
+    async function readSubTasksAsync(container, options = {
+      withFile: false, withKoi: false, pdfOnly: false, withKoiFile: false, koiFilePdfOnly: false
+    }) {
+      const { withFile, withKoi, pdfOnly, withKoiFile, koiFilePdfOnly } = options;
+      const rows = Array.from(container.querySelectorAll('[data-sub-row="1"]'));
+      const result = [];
+      for (const row of rows) {
+        const title = row.querySelector('[data-sub="title"]').value.trim();
+        const startDate = row.querySelector('[data-sub="startDate"]').value;
+        const deadline = row.querySelector('[data-sub="deadline"]').value;
+        const finishDate = row.querySelector('[data-sub="finishDate"]').value;
+        const linkKoi = withKoi ? String(row.querySelector('[data-sub="linkKoi"]')?.value || "").trim() : "";
+        let fileName = withFile ? (row.dataset.existingFileName || "") : "";
+        let fileDataUrl = withFile ? (row.dataset.existingFileDataUrl || "") : "";
+        let koiFileName = withKoiFile ? (row.dataset.existingKoiFileName || "") : "";
+        let koiFileDataUrl = withKoiFile ? (row.dataset.existingKoiFileDataUrl || "") : "";
+        const fileInput = row.querySelector('[data-sub="file"]');
+        const koiFileInput = row.querySelector('[data-sub="koiFile"]');
+        if (withFile) {
+          const selected = fileInput && fileInput.files && fileInput.files[0];
+          if (selected) {
+            if (pdfOnly && !isPdf(selected)) {
+              if (fileInput) markFieldInvalid(fileInput);
+              return null;
+            }
+            fileName = selected.name;
+            fileDataUrl = await readFileAsDataUrl(selected);
+          }
+        }
+        if (withKoiFile) {
+          const selectedKoiFile = koiFileInput && koiFileInput.files && koiFileInput.files[0];
+          if (selectedKoiFile) {
+            if (koiFilePdfOnly && !isPdf(selectedKoiFile)) {
+              if (koiFileInput) markFieldInvalid(koiFileInput);
+              return null;
+            }
+            koiFileName = selectedKoiFile.name;
+            koiFileDataUrl = await readFileAsDataUrl(selectedKoiFile);
+          }
+        }
+        const hasAnyValue = Boolean(
+          title || startDate || deadline || finishDate || linkKoi || fileName || koiFileName
+          || (fileInput && fileInput.files && fileInput.files[0])
+          || (koiFileInput && koiFileInput.files && koiFileInput.files[0])
+        );
+        if (!hasAnyValue) continue;
+        const info = calcSubTask(startDate, deadline, finishDate);
+        result.push({ title, startDate, deadline, finishDate, duration: info.duration, status: info.status, fileName, fileDataUrl, linkKoi, koiFileName, koiFileDataUrl });
+      }
+      return result;
+    }
+
+    function renderSubCell(values) {
+      return values.map((v) => `<div class="py-2 border-b last:border-b-0 border-gray-200 min-h-[40px] flex items-center">${v || ""}</div>`).join("");
+    }
+    function renderSubCellWithState(values, rowClasses = []) {
+      return values.map((v, idx) => {
+        const extraCls = rowClasses[idx] || "";
+        return `<div class="py-2 border-b last:border-b-0 border-gray-200 min-h-[40px] flex items-center ${extraCls}">${v || ""}</div>`;
+      }).join("");
+    }
+    function isCompletedStatus(status) {
+      return String(status || "").startsWith("Hoàn thành");
+    }
+    function isCarryOverTask(task, selectedMonth) {
+      const targetMonth = Number(selectedMonth);
+      if (!Number.isFinite(targetMonth)) return false;
+      const startMonth = monthFromYmd(task?.startDate || "");
+      if (!startMonth) return false;
+      return startMonth < targetMonth && !isCompletedStatus(task?.status || "");
+    }
+    function sortSubTasksWithCarryOver(subTasks, selectedMonth) {
+      const withMeta = subTasks.map((task, index) => ({
+        task,
+        index,
+        isCarry: isCarryOverTask(task, selectedMonth)
+      }));
+      if (selectedMonth !== "all") {
+        withMeta.sort((a, b) => {
+          if (a.isCarry === b.isCarry) return a.index - b.index;
+          return a.isCarry ? -1 : 1;
+        });
+      }
+      return withMeta;
+    }
+    function picCellHtml(pic, carryCount) {
+      if (!carryCount || carryCount <= 0) return pic || "";
+      return `${pic || ""} <span class="ml-1 inline-flex animate-pulse text-red-500" title="Đang nợ ${carryCount} nhiệm vụ từ tháng cũ">⚠️</span>`;
+    }
+    function splitTasksBySelectedMonth(subTasks, selectedMonth) {
+      if (selectedMonth === "all") return { oldTasks: [], currentTasks: [...subTasks] };
+      const targetMonth = Number(selectedMonth);
+      if (!Number.isFinite(targetMonth)) return { oldTasks: [], currentTasks: [...subTasks] };
+      const oldTasks = subTasks.filter((task) => {
+        const startMonth = monthFromYmd(task.startDate || "");
+        const finishMonth = monthFromYmd(task.finishDate || "");
+        return Boolean(startMonth && startMonth < targetMonth && (!finishMonth || finishMonth >= targetMonth));
+      });
+      const currentTasks = subTasks.filter((task) => monthFromYmd(task.startDate || "") === targetMonth);
+      return { oldTasks, currentTasks };
+    }
+    function getSelectedMonthValue(rawMonth) {
+      if (rawMonth === "all") return new Date().getMonth() + 1;
+      return Number(rawMonth);
+    }
+
+    function validateBase(form, container, isC1) {
+      const picEl = isC1 ? form.elements.pic : form.elements.picL;
+      const soLuongEl = isC1 ? form.elements.soLuong : form.elements.soLuongL;
+      const mucTieuEl = isC1 ? form.elements.mucTieu : form.elements.mucTieuL;
+      const req = [
+        { el: picEl, name: "TÊN PIC" },
+        { el: soLuongEl, name: "Số lượng" },
+        { el: mucTieuEl, name: "Mục tiêu" }
+      ];
+      let ok = true;
+      req.forEach(({ el, name }) => {
+        if (!String(el.value || "").trim()) {
+          setError(el, `Vui lòng nhập ${name}.`);
+          markFieldInvalid(el);
+          ok = false;
+        } else {
+          clearError(el);
+          clearFieldInvalid(el);
+        }
+      });
+      const subTasks = readSubTasks(container, { withFile: true, withKoi: isC1, withKoiFile: !isC1 });
+      const subRows = Array.from(container.querySelectorAll('[data-sub-row="1"]'));
+      let requireQuantityAndTarget = false;
+      let finishDateRuleError = false;
+      subRows.forEach((row, idx) => {
+        const titleInput = row.querySelector('[data-sub="title"]');
+        const startInput = row.querySelector('[data-sub="startDate"]');
+        const deadlineInput = row.querySelector('[data-sub="deadline"]');
+        const finishInput = row.querySelector('[data-sub="finishDate"]');
+        const fileInput = row.querySelector('[data-sub="file"]');
+        const koiInput = row.querySelector('[data-sub="linkKoi"]');
+        const koiFileInput = row.querySelector('[data-sub="koiFile"]');
+        const s = subTasks[idx] || {};
+        if (isC1 && fileInput) {
+          const selPdf = fileInput.files && fileInput.files[0];
+          if (selPdf && !isPdf(selPdf)) {
+            markFieldInvalid(fileInput);
+            ok = false;
+          }
+        }
+        if (!s.title) { markFieldInvalid(titleInput); ok = false; } else clearFieldInvalid(titleInput);
+        if (!s.startDate) { markFieldInvalid(startInput); ok = false; } else clearFieldInvalid(startInput);
+        if (!s.deadline) { markFieldInvalid(deadlineInput); ok = false; } else clearFieldInvalid(deadlineInput);
+        const startDate = parseDateOnly(s.startDate);
+        const deadlineDate = parseDateOnly(s.deadline);
+        const finishDate = parseDateOnly(s.finishDate);
+        const limitDate = isC1 ? getQuarterEndDate(startDate) : getMonthEndDate(startDate);
+        if (startDate && deadlineDate && deadlineDate.getTime() < startDate.getTime()) {
+          markFieldInvalid(deadlineInput);
+          ok = false;
+        }
+        if (startDate && deadlineDate && limitDate && deadlineDate.getTime() > limitDate.getTime()) {
+          markFieldInvalid(deadlineInput);
+          ok = false;
+        }
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        if (startDate && finishDate && finishDate.getTime() < startDate.getTime()) {
+          markFieldInvalid(finishInput);
+          ok = false;
+          finishDateRuleError = true;
+        }
+        const finishBeforeStart = Boolean(startDate && finishDate && finishDate.getTime() < startDate.getTime());
+        const finishAfterToday = Boolean(finishDate && finishDate.getTime() > today.getTime());
+        if (finishAfterToday) {
+          markFieldInvalid(finishInput);
+          ok = false;
+          finishDateRuleError = true;
+        } else if (!finishBeforeStart) {
+          clearFieldInvalid(finishInput);
+        }
+        if (finishDate) {
+          const hasExistingFile = Boolean(s.fileName);
+          const hasSelectedFile = Boolean(fileInput && fileInput.files && fileInput.files[0]);
+          if (!hasExistingFile && !hasSelectedFile) requireQuantityAndTarget = true;
+          const hasFile = Boolean((fileInput && fileInput.files && fileInput.files[0]) || s.fileName);
+          const hasKoi = isC1 ? Boolean(String(koiInput?.value || "").trim()) : true;
+          const hasKoiFileL = isC1 ? true : Boolean((koiFileInput && koiFileInput.files && koiFileInput.files[0]) || s.koiFileName);
+          if (!hasFile) {
+            if (fileInput) markFieldInvalid(fileInput);
+            ok = false;
+          } else if (fileInput) {
+            const badPdfC1 = isC1 && fileInput.files && fileInput.files[0] && !isPdf(fileInput.files[0]);
+            if (!badPdfC1) clearFieldInvalid(fileInput);
+          }
+          if (!isC1) {
+            const badKoiPdf = koiFileInput && koiFileInput.files && koiFileInput.files[0] && !isPdf(koiFileInput.files[0]);
+            if (!hasKoiFileL || badKoiPdf) {
+              if (koiFileInput) markFieldInvalid(koiFileInput);
+              ok = false;
+            } else if (koiFileInput) {
+              clearFieldInvalid(koiFileInput);
+            }
+          }
+          if (isC1) {
+            if (!hasKoi) {
+              if (koiInput) markFieldInvalid(koiInput);
+              ok = false;
+            } else if (koiInput) {
+              clearFieldInvalid(koiInput);
+            }
+          }
+        }
+      });
+      if (requireQuantityAndTarget) {
+        const hasSoLuong = Boolean(String(soLuongEl?.value || "").trim());
+        const hasMucTieu = Boolean(String(mucTieuEl?.value || "").trim());
+        if (!hasSoLuong) {
+          if (soLuongEl) markFieldInvalid(soLuongEl);
+          ok = false;
+        } else if (soLuongEl) {
+          clearFieldInvalid(soLuongEl);
+        }
+        if (!hasMucTieu) {
+          if (mucTieuEl) markFieldInvalid(mucTieuEl);
+          ok = false;
+        } else if (mucTieuEl) {
+          clearFieldInvalid(mucTieuEl);
+        }
+      }
+      if (finishDateRuleError) {
+        alert("Lỗi: Ngày hoàn thành phải lớn hơn hoặc bằng Ngày bắt đầu và không được lớn hơn hôm nay.");
+        return false;
+      }
+      if (!ok) alert("Lỗi: Vui lòng điền đầy đủ Số lượng, Mục tiêu và Tên Chủ đề trước khi lưu!");
+      return ok;
+    }
+
+    function renderC1() {
+      const rows = getRowsForRender(STORAGE_KEY_C1);
+      const selectedMonth = filterMonthC1 ? filterMonthC1.value : "all";
+      tableBodyC1.innerHTML = "";
+      rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        const allSubTasks = (row.subTasks || []).map((s, idx) => ({ ...s, ...calcSubTask(s.startDate || "", s.deadline || "", s.finishDate || ""), _idx: idx }));
+        const { oldTasks, currentTasks } = splitTasksBySelectedMonth(allSubTasks, selectedMonth);
+        const carryCount = oldTasks.length;
+        const displayTasks = [...oldTasks, ...currentTasks];
+        const rowStateClasses = [...oldTasks.map(() => "bg-red-50 text-red-700"), ...currentTasks.map(() => "")];
+        const titleValues = [...oldTasks.map((s) => `[Tồn đọng/Kéo dài] ${s.title || ""}`), ...currentTasks.map((s) => s.title || "")];
+        const startValues = displayTasks.map((s) => formatDate(s.startDate || ""));
+        const deadlineValues = displayTasks.map((s) => formatDate(s.deadline || ""));
+        const finishValues = displayTasks.map((s) => formatDate(s.finishDate || ""));
+        const durationValues = displayTasks.map((s) => s.duration || "");
+        const fileValues = displayTasks.map((s) => (s.fileName ? `<a href="${normalizeUrl(s.fileDataUrl || s.fileName)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">${s.fileName}</a>` : ""));
+        const linkValues = displayTasks.map((s) => (s.linkKoi ? `<a href="${normalizeUrl(s.linkKoi)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">${s.linkKoi}</a>` : ""));
+        const statusValues = displayTasks.map((s) => statusBadgeHtml(s.status || ""));
+        const actionValues = displayTasks.map((s, idx) => {
+          const isOld = idx < oldTasks.length;
+          const btnClass = isOld ? "btn-update-overdue" : "btn-update-newmonth";
+          const btnLabel = isOld ? "Cập nhật tồn đọng" : "Cập nhật tháng mới";
+          const style = isOld
+            ? "rounded border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+            : "rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-semibold text-green-700 hover:bg-green-100";
+          return `<button class="${btnClass} ${style}" type="button" data-id="${row.id}" data-task-index="${s._idx}">${btnLabel}</button>`;
+        });
+        if (currentTasks.length === 0) {
+          titleValues.push('<span class="text-gray-400 italic">Chờ cập nhật nhiệm vụ tháng hiện tại...</span>');
+          startValues.push("-");
+          deadlineValues.push("-");
+          finishValues.push("-");
+          durationValues.push("-");
+          fileValues.push("-");
+          linkValues.push("-");
+          statusValues.push("-");
+          actionValues.push(`<button class="btn-update-newmonth rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-semibold text-green-700 hover:bg-green-100" type="button" data-id="${row.id}">Cập nhật tháng mới</button>`);
+          rowStateClasses.push("");
+        }
+        tr.innerHTML = `
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle font-bold text-gray-800">${row.pic || ""}${carryCount > 0 ? '<span class="text-red-500 animate-pulse ml-2" title="Có nhiệm vụ tồn đọng/kéo dài">⚠️</span>' : ""}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(actionValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-left align-middle min-w-[250px]">${renderSubCellWithState(titleValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(startValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(deadlineValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(finishValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(durationValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(fileValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(linkValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(displayTasks.length > 0 ? displayTasks.map(() => '<span class="w-full text-center block">1</span>') : ['<span class="w-full text-center block">-</span>'], rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(displayTasks.length > 0 ? displayTasks.map(() => '<span class="w-full text-center block">1</span>') : ['<span class="w-full text-center block">-</span>'], rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(statusValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle min-w-[250px]">${row.ghiChu || ""}</td>`;
+        tableBodyC1.appendChild(tr);
+      });
+    }
+
+    function renderL() {
+      const rows = getRowsForRender(STORAGE_KEY_L);
+      const selectedMonth = filterMonthL ? filterMonthL.value : "all";
+      tableBodyL.innerHTML = "";
+      rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        const allSubTasks = (row.subTasks || []).map((s, idx) => ({ ...s, ...calcSubTask(s.startDate || "", s.deadline || "", s.finishDate || ""), _idx: idx }));
+        const { oldTasks, currentTasks } = splitTasksBySelectedMonth(allSubTasks, selectedMonth);
+        const carryCount = oldTasks.length;
+        const displayTasks = [...oldTasks, ...currentTasks];
+        const rowStateClasses = [...oldTasks.map(() => "bg-red-50 text-red-700"), ...currentTasks.map(() => "")];
+        const titleValues = [...oldTasks.map((s) => `[Tồn đọng/Kéo dài] ${s.title || ""}`), ...currentTasks.map((s) => s.title || "")];
+        const startValues = displayTasks.map((s) => formatDate(s.startDate || ""));
+        const deadlineValues = displayTasks.map((s) => formatDate(s.deadline || ""));
+        const finishValues = displayTasks.map((s) => formatDate(s.finishDate || ""));
+        const durationValues = displayTasks.map((s) => s.duration || "");
+        const fileValues = displayTasks.map((s) => (s.fileName ? `<a href="${normalizeUrl(s.fileDataUrl || s.fileName)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">${s.fileName}</a>` : ""));
+        const koiFileValues = displayTasks.map((s) => (s.koiFileName ? `<a href="${normalizeUrl(s.koiFileDataUrl || s.koiFileName)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">${s.koiFileName}</a>` : ""));
+        const statusValues = displayTasks.map((s) => statusBadgeHtml(s.status || ""));
+        const actionValues = displayTasks.map((s, idx) => {
+          const isOld = idx < oldTasks.length;
+          const btnClass = isOld ? "btn-update-overdue-l" : "btn-update-newmonth-l";
+          const btnLabel = isOld ? "Cập nhật tồn đọng" : "Cập nhật tháng mới";
+          const style = isOld
+            ? "rounded border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+            : "rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-semibold text-green-700 hover:bg-green-100";
+          return `<button class="${btnClass} ${style}" type="button" data-id="${row.id}" data-task-index="${s._idx}">${btnLabel}</button>`;
+        });
+        if (currentTasks.length === 0) {
+          titleValues.push('<span class="text-gray-400 italic">Chờ cập nhật nhiệm vụ tháng hiện tại...</span>');
+          startValues.push("-");
+          deadlineValues.push("-");
+          finishValues.push("-");
+          durationValues.push("-");
+          fileValues.push("-");
+          koiFileValues.push("-");
+          statusValues.push("-");
+          actionValues.push(`<button class="btn-update-newmonth-l rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-semibold text-green-700 hover:bg-green-100" type="button" data-id="${row.id}">Cập nhật tháng mới</button>`);
+          rowStateClasses.push("");
+        }
+        tr.innerHTML = `
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle font-bold text-gray-800">${row.pic || ""}${carryCount > 0 ? '<span class="text-red-500 animate-pulse ml-2" title="Có nhiệm vụ tồn đọng/kéo dài">⚠️</span>' : ""}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(actionValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-left align-middle min-w-[250px]">${renderSubCellWithState(titleValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(startValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(deadlineValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(finishValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(durationValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(fileValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(koiFileValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(displayTasks.length > 0 ? displayTasks.map(() => '<span class="w-full text-center block">1</span>') : ['<span class="w-full text-center block">-</span>'], rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(displayTasks.length > 0 ? displayTasks.map(() => '<span class="w-full text-center block">1</span>') : ['<span class="w-full text-center block">-</span>'], rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle">${renderSubCellWithState(statusValues, rowStateClasses)}</td>
+          <td class="border border-slate-200 px-4 py-3 text-center align-middle min-w-[250px]">${row.ghiChu || ""}</td>`;
+        tableBodyL.appendChild(tr);
+      });
+    }
+
+    function loadToFormC1(id, mode = "all", taskIndex = null) {
+      const row = rowsFromStorage(STORAGE_KEY_C1).find((x) => x.id === id);
+      if (!row) return;
+      editingIdC1 = id;
+      editingModeC1 = mode;
+      submitBtnC1.textContent = "Lưu cập nhật";
+      formC1.elements.pic.value = row.pic || "";
+      formC1.elements.pic.disabled = true;
+      const allSubTasks = Array.isArray(row.subTasks) ? row.subTasks : [];
+      const selectedMonth = getSelectedMonthValue(filterMonthC1 ? filterMonthC1.value : "all");
+      const allWithStatus = allSubTasks.map((s) => ({ ...s, ...calcSubTask(s.startDate || "", s.deadline || "", s.finishDate || "") }));
+      const { oldTasks, currentTasks } = splitTasksBySelectedMonth(allWithStatus, selectedMonth);
+      let subTasks = allSubTasks;
+      preservedSubTasksC1 = [];
+      if (typeof taskIndex === "number" && allSubTasks[taskIndex]) {
+        subTasks = [allSubTasks[taskIndex]];
+        preservedSubTasksC1 = allSubTasks.filter((_, idx) => idx !== taskIndex);
+      } else if (mode === "overdue") {
+        const oldSet = new Set(oldTasks.map((s) => `${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+        subTasks = allSubTasks.filter((s) => oldSet.has(`${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+        preservedSubTasksC1 = allSubTasks.filter((s) => !oldSet.has(`${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+      } else if (mode === "newmonth") {
+        const currentSet = new Set(currentTasks.map((s) => `${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+        subTasks = allSubTasks.filter((s) => currentSet.has(`${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+        preservedSubTasksC1 = allSubTasks.filter((s) => !currentSet.has(`${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+      }
+      formC1.elements.soLuong.value = "1";
+      formC1.elements.mucTieu.value = "1";
+      clearError(formC1.elements.soLuong);
+      clearError(formC1.elements.mucTieu);
+      clearFieldInvalid(formC1.elements.soLuong);
+      clearFieldInvalid(formC1.elements.mucTieu);
+      formC1.elements.ghiChu.value = row.ghiChu || "";
+      buildSubTaskRows(subTaskContainerC1, 1, subTasks.slice(0, 1), { withFile: true, withKoi: true, pdfOnly: true, dateLimitMode: "quarter" });
+      openModalC1();
+    }
+
+    function loadToFormL(id, mode = "all", taskIndex = null) {
+      const row = rowsFromStorage(STORAGE_KEY_L).find((x) => x.id === id);
+      if (!row) return;
+      editingIdL = id;
+      editingModeL = mode;
+      submitBtnL.textContent = "Lưu cập nhật";
+      formL.elements.picL.value = row.pic || "";
+      formL.elements.picL.disabled = true;
+      const allSubTasks = Array.isArray(row.subTasks) ? row.subTasks : [];
+      const selectedMonth = getSelectedMonthValue(filterMonthL ? filterMonthL.value : "all");
+      const allWithStatus = allSubTasks.map((s) => ({ ...s, ...calcSubTask(s.startDate || "", s.deadline || "", s.finishDate || "") }));
+      const { oldTasks, currentTasks } = splitTasksBySelectedMonth(allWithStatus, selectedMonth);
+      let subTasks = allSubTasks;
+      preservedSubTasksL = [];
+      if (typeof taskIndex === "number" && allSubTasks[taskIndex]) {
+        subTasks = [allSubTasks[taskIndex]];
+        preservedSubTasksL = allSubTasks.filter((_, idx) => idx !== taskIndex);
+      } else if (mode === "overdue") {
+        const oldSet = new Set(oldTasks.map((s) => `${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+        subTasks = allSubTasks.filter((s) => oldSet.has(`${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+        preservedSubTasksL = allSubTasks.filter((s) => !oldSet.has(`${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+      } else if (mode === "newmonth") {
+        const currentSet = new Set(currentTasks.map((s) => `${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+        subTasks = allSubTasks.filter((s) => currentSet.has(`${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+        preservedSubTasksL = allSubTasks.filter((s) => !currentSet.has(`${s.title}|${s.startDate}|${s.deadline}|${s.finishDate}`));
+      }
+      formL.elements.soLuongL.value = "1";
+      formL.elements.mucTieuL.value = "1";
+      clearError(formL.elements.soLuongL);
+      clearError(formL.elements.mucTieuL);
+      clearFieldInvalid(formL.elements.soLuongL);
+      clearFieldInvalid(formL.elements.mucTieuL);
+      formL.elements.ghiChuL.value = row.ghiChu || "";
+      buildSubTaskRows(subTaskContainerL, 1, subTasks.slice(0, 1), { withFile: true, withKoi: false, withKoiFile: true, koiFilePdfOnly: true, koiLabelText: "File biên bản đào tạo", dateLimitMode: "month" });
+      openModalL();
+    }
+
+    tableBodyC1.addEventListener("click", (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      const id = target.dataset.id;
+      if (!id) return;
+      const taskIndex = Number(target.dataset.taskIndex);
+      const hasTaskIndex = Number.isFinite(taskIndex);
+      if (target.classList.contains("btn-update-overdue")) loadToFormC1(id, hasTaskIndex ? "task" : "overdue", hasTaskIndex ? taskIndex : null);
+      if (target.classList.contains("btn-update-newmonth")) loadToFormC1(id, hasTaskIndex ? "task" : "newmonth", hasTaskIndex ? taskIndex : null);
+    });
+
+    tableBodyL.addEventListener("click", (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      const id = target.dataset.id;
+      if (!id) return;
+      const taskIndex = Number(target.dataset.taskIndex);
+      const hasTaskIndex = Number.isFinite(taskIndex);
+      if (target.classList.contains("btn-update-overdue-l")) loadToFormL(id, hasTaskIndex ? "task" : "overdue", hasTaskIndex ? taskIndex : null);
+      if (target.classList.contains("btn-update-newmonth-l")) loadToFormL(id, hasTaskIndex ? "task" : "newmonth", hasTaskIndex ? taskIndex : null);
+    });
+
+    if (filterMonthC1) filterMonthC1.addEventListener("change", renderC1);
+    if (filterMonthL) filterMonthL.addEventListener("change", renderL);
+
+    [formC1.elements.pic, formC1.elements.soLuong, formC1.elements.mucTieu]
+      .forEach((el) => {
+        if (!el) return;
+        el.addEventListener("input", () => clearFieldInvalid(el));
+        el.addEventListener("change", () => clearFieldInvalid(el));
+      });
+    [formL.elements.picL, formL.elements.soLuongL, formL.elements.mucTieuL]
+      .forEach((el) => {
+        if (!el) return;
+        el.addEventListener("input", () => clearFieldInvalid(el));
+        el.addEventListener("change", () => clearFieldInvalid(el));
+      });
+
+    formC1.elements.mucTieu.addEventListener("input", () => {
+      formC1.elements.mucTieu.value = "1";
+      buildSubTaskRows(subTaskContainerC1, 1, readSubTasks(subTaskContainerC1, { withFile: true, withKoi: true }).slice(0, 1), { withFile: true, withKoi: true, pdfOnly: true, dateLimitMode: "quarter" });
+    });
+    formL.elements.mucTieuL.addEventListener("input", () => {
+      formL.elements.mucTieuL.value = "1";
+      buildSubTaskRows(subTaskContainerL, 1, readSubTasks(subTaskContainerL, { withFile: true, withKoi: false, withKoiFile: true }).slice(0, 1), { withFile: true, withKoi: false, withKoiFile: true, koiFilePdfOnly: true, koiLabelText: "File biên bản đào tạo", dateLimitMode: "month" });
+    });
+
+    if (clearBtnC1) clearBtnC1.addEventListener("click", () => clearModalData(true));
+    if (clearBtnL) clearBtnL.addEventListener("click", () => clearModalData(false));
+
+    formC1.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const soLuongVal = String(formC1.elements.soLuong.value || "").trim();
+      const draftSubTasks = readSubTasks(subTaskContainerC1, { withFile: true, withKoi: true });
+      const allTitleEmpty = draftSubTasks.every((s) => !String(s.title || "").trim());
+      const isClearRequest = (!soLuongVal || Number(soLuongVal) === 0) && allTitleEmpty;
+      if (isClearRequest) {
+        const row = {
+          id: editingIdC1 || uid(),
+          pic: String(formC1.elements.pic.value || "").trim(),
+          soLuong: "",
+          mucTieu: "",
+          ghiChu: String(formC1.elements.ghiChu.value || "").trim(),
+          subTasks: []
+        };
+        const rows = rowsFromStorage(STORAGE_KEY_C1);
+        const next = rows.map((r) => ((editingIdC1 && r.id === editingIdC1) || (!editingIdC1 && String(r.pic || "").trim() === row.pic) ? row : r));
+        saveRows(STORAGE_KEY_C1, next);
+        editingIdC1 = null;
+        editingModeC1 = "all";
+        preservedSubTasksC1 = [];
+        renderC1();
+        clearModalData(true);
+        closeModalC1();
+        return;
+      }
+      if (!validateBase(formC1, subTaskContainerC1, true)) return;
+      if (!validateDateWindowRule(subTaskContainerC1, true)) return;
+      const subTasksC1 = await readSubTasksAsync(subTaskContainerC1, { withFile: true, withKoi: true, pdfOnly: true });
+      if (subTasksC1 === null) {
+        alert("Lỗi: Chỉ được chọn file PDF.");
+        return;
+      }
+      const row = {
+        id: editingIdC1 || uid(),
+        pic: String(formC1.elements.pic.value || "").trim(),
+        soLuong: editingIdC1 ? String(formC1.elements.soLuong.value || "").trim() : "1",
+        mucTieu: editingIdC1 ? String(formC1.elements.mucTieu.value || "").trim() : "1",
+        ghiChu: String(formC1.elements.ghiChu.value || "").trim(),
+        subTasks: [...preservedSubTasksC1, ...(Array.isArray(subTasksC1) ? (editingIdC1 ? subTasksC1 : subTasksC1.slice(0, 1)) : [])]
+      };
+      const rows = rowsFromStorage(STORAGE_KEY_C1);
+      const next = editingIdC1
+        ? rows.map((r) => (r.id === editingIdC1 ? row : r))
+        : rows.map((r) => {
+          if (String(r.pic || "").trim() !== row.pic) return r;
+          const existingTasks = Array.isArray(r.subTasks) ? r.subTasks : [];
+          return { ...r, soLuong: "1", mucTieu: "1", subTasks: [...existingTasks, ...(row.subTasks || [])] };
+        });
+      saveRows(STORAGE_KEY_C1, next);
+      editingIdC1 = null;
+      editingModeC1 = "all";
+      preservedSubTasksC1 = [];
+      renderC1();
+      clearModalData(true);
+      closeModalC1();
+    });
+
+    formL.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const soLuongVal = String(formL.elements.soLuongL.value || "").trim();
+      const draftSubTasks = readSubTasks(subTaskContainerL, { withFile: true, withKoi: false, withKoiFile: true });
+      const allTitleEmpty = draftSubTasks.every((s) => !String(s.title || "").trim());
+      const isClearRequest = (!soLuongVal || Number(soLuongVal) === 0) && allTitleEmpty;
+      if (isClearRequest) {
+        const row = {
+          id: editingIdL || uid(),
+          pic: String(formL.elements.picL.value || "").trim(),
+          soLuong: "",
+          mucTieu: "",
+          ghiChu: String(formL.elements.ghiChuL.value || "").trim(),
+          subTasks: []
+        };
+        const rows = rowsFromStorage(STORAGE_KEY_L);
+        const next = rows.map((r) => ((editingIdL && r.id === editingIdL) || (!editingIdL && String(r.pic || "").trim() === row.pic) ? row : r));
+        saveRows(STORAGE_KEY_L, next);
+        editingIdL = null;
+        editingModeL = "all";
+        preservedSubTasksL = [];
+        renderL();
+        clearModalData(false);
+        closeModalL();
+        return;
+      }
+      if (!validateBase(formL, subTaskContainerL, false)) return;
+      if (!validateDateWindowRule(subTaskContainerL, false)) return;
+      const subTasksL = await readSubTasksAsync(subTaskContainerL, { withFile: true, withKoi: false, withKoiFile: true, koiFilePdfOnly: true });
+      if (subTasksL === null) {
+        alert("Lỗi: File biên bản đào tạo chỉ được chọn PDF.");
+        return;
+      }
+      const row = {
+        id: editingIdL || uid(),
+        pic: String(formL.elements.picL.value || "").trim(),
+        soLuong: editingIdL ? String(formL.elements.soLuongL.value || "").trim() : "1",
+        mucTieu: editingIdL ? String(formL.elements.mucTieuL.value || "").trim() : "1",
+        ghiChu: String(formL.elements.ghiChuL.value || "").trim(),
+        subTasks: [...preservedSubTasksL, ...(Array.isArray(subTasksL) ? (editingIdL ? subTasksL : subTasksL.slice(0, 1)) : [])]
+      };
+      const rows = rowsFromStorage(STORAGE_KEY_L);
+      const next = editingIdL
+        ? rows.map((r) => (r.id === editingIdL ? row : r))
+        : rows.map((r) => {
+          if (String(r.pic || "").trim() !== row.pic) return r;
+          const existingTasks = Array.isArray(r.subTasks) ? r.subTasks : [];
+          return { ...r, soLuong: "1", mucTieu: "1", subTasks: [...existingTasks, ...(row.subTasks || [])] };
+        });
+      saveRows(STORAGE_KEY_L, next);
+      editingIdL = null;
+      editingModeL = "all";
+      preservedSubTasksL = [];
+      renderL();
+      clearModalData(false);
+      closeModalL();
+    });
+
+    function exportTableWithoutAction(tableId, filename, sheetName) {
+      const table = document.getElementById(tableId);
+      if (!table || typeof XLSX === "undefined") return;
+      const cloned = table.cloneNode(true);
+      cloned.querySelectorAll("tr").forEach((row) => { if (row.cells.length > 0) row.deleteCell(row.cells.length - 1); });
+      const wb = XLSX.utils.table_to_book(cloned, { sheet: sheetName });
+      XLSX.writeFile(wb, filename);
+    }
+    function exportExcelC1() { exportTableWithoutAction("tableC1", "Thong_Ke_The_C1.xlsx", "TheC1"); }
+    function exportExcelL() { exportTableWithoutAction("tableL", "Thong_Ke_The_L.xlsx", "TheL"); }
+    function getExportMonth() {
+      const c1Month = String(filterMonthC1?.value || "all");
+      const lMonth = String(filterMonthL?.value || "all");
+      if (c1Month !== "all") return Number(c1Month);
+      if (lMonth !== "all") return Number(lMonth);
+      return new Date().getMonth() + 1;
+    }
+    function setHyperlinkCell(sheet, addr, label, link) {
+      if (!label) return;
+      const safeLink = normalizeUrl(link || "");
+      if (!safeLink) return;
+      sheet[addr] = { t: "s", v: label, l: { Target: safeLink } };
+    }
+    function exportMonthlyAll() {
+      if (typeof XLSX === "undefined") return;
+      const selectedMonthC1 = String(filterMonthC1?.value || "all");
+      const selectedMonthL = String(filterMonthL?.value || "all");
+      const selectedMonth = selectedMonthC1 !== "all" ? selectedMonthC1 : selectedMonthL;
+      const rowsC1 = rowsFromStorage(STORAGE_KEY_C1)
+        .flatMap((row) => (row.subTasks || [])
+          .filter((s) => {
+            const title = String(s.title || "").trim();
+            const soLuong = Number(row.soLuong || 0);
+            const finishDate = String(s.finishDate || "").trim();
+            if (!title || /^chờ cập nhật/i.test(title)) return false;
+            if (!Number.isFinite(soLuong) || soLuong === 0) return false;
+            if (!finishDate) return false;
+            if (selectedMonth !== "all" && monthFromDateStr(finishDate) !== Number(selectedMonth)) return false;
+            return true;
+          })
+          .map((s) => ({ row, s })));
+      const rowsL = rowsFromStorage(STORAGE_KEY_L)
+        .flatMap((row) => (row.subTasks || [])
+          .filter((s) => {
+            const title = String(s.title || "").trim();
+            const soLuong = Number(row.soLuong || 0);
+            const finishDate = String(s.finishDate || "").trim();
+            if (!title || /^chờ cập nhật/i.test(title)) return false;
+            if (!Number.isFinite(soLuong) || soLuong === 0) return false;
+            if (!finishDate) return false;
+            if (selectedMonth !== "all" && monthFromDateStr(finishDate) !== Number(selectedMonth)) return false;
+            return true;
+          })
+          .map((s) => ({ row, s })));
+      if (rowsC1.length === 0 && rowsL.length === 0) {
+        alert(selectedMonth === "all" ? "Không có dữ liệu hoàn thành để xuất." : `Không có dữ liệu hoàn thành tháng ${selectedMonth} để xuất.`);
+        return;
+      }
+      const c1Data = [
+        ["PIC", "Chủ đề", "Ngày bắt đầu", "Deadline", "Ngày hoàn thành", "Thời gian thực hiện", "Trạng thái", "File BC", "Link KOI", "Số lượng", "Mục tiêu", "Ghi chú"]
+      ];
+      rowsC1.forEach(({ row, s }) => {
+        const info = calcSubTask(s.startDate || "", s.deadline || "", s.finishDate || "");
+        c1Data.push([
+          row.pic || "", s.title || "", formatDate(s.startDate || ""), formatDate(s.deadline || ""), formatDate(s.finishDate || ""),
+          info.duration || "", info.status || "", s.fileName || "", s.linkKoi || "", row.soLuong ?? "", row.mucTieu ?? "", row.ghiChu || ""
+        ]);
+      });
+      const lData = [
+        ["PIC", "Chủ đề", "Ngày bắt đầu", "Deadline", "Ngày hoàn thành", "Thời gian thực hiện", "Trạng thái", "File đính kèm", "File biên bản đào tạo", "Số lượng", "Mục tiêu", "Ghi chú"]
+      ];
+      rowsL.forEach(({ row, s }) => {
+        const info = calcSubTask(s.startDate || "", s.deadline || "", s.finishDate || "");
+        lData.push([
+          row.pic || "", s.title || "", formatDate(s.startDate || ""), formatDate(s.deadline || ""), formatDate(s.finishDate || ""),
+          info.duration || "", info.status || "", s.fileName || "", s.koiFileName || "", row.soLuong ?? "", row.mucTieu ?? "", row.ghiChu || ""
+        ]);
+      });
+      const wsC1 = XLSX.utils.aoa_to_sheet(c1Data);
+      const wsL = XLSX.utils.aoa_to_sheet(lData);
+      rowsC1.forEach(({ s }, idx) => {
+        const rowNo = idx + 2;
+        setHyperlinkCell(wsC1, `H${rowNo}`, s.fileName || "", s.fileDataUrl || "");
+        setHyperlinkCell(wsC1, `I${rowNo}`, s.linkKoi || "", s.linkKoi || "");
+      });
+      rowsL.forEach(({ s }, idx) => {
+        const rowNo = idx + 2;
+        setHyperlinkCell(wsL, `H${rowNo}`, s.fileName || "", s.fileDataUrl || "");
+        setHyperlinkCell(wsL, `I${rowNo}`, s.koiFileName || "", s.koiFileDataUrl || "");
+      });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, wsC1, "TheC1");
+      XLSX.utils.book_append_sheet(wb, wsL, "TheL");
+      const monthLabel = selectedMonth === "all" ? "all" : String(selectedMonth).padStart(2, "0");
+      XLSX.writeFile(wb, `Tong_hop_the_thang_${monthLabel}.xlsx`);
+    }
+    window.exportExcelC1 = exportExcelC1;
+    window.exportExcelL = exportExcelL;
+    window.exportMonthlyAll = exportMonthlyAll;
+    const btnRefresh = document.getElementById("btnRefresh");
+    if (btnRefresh) btnRefresh.addEventListener("click", () => window.location.reload());
+    const btnRefreshL = document.getElementById("btnRefreshL");
+    if (btnRefreshL) btnRefreshL.addEventListener("click", () => window.location.reload());
+
+    const currentMonthStr = String(new Date().getMonth() + 1);
+    if (filterMonthC1) filterMonthC1.value = currentMonthStr;
+    if (filterMonthL) filterMonthL.value = currentMonthStr;
+
+    const savedTab = String(localStorage.getItem(STORAGE_KEY_ACTIVE_TAB) || "c1");
+    switchTab(savedTab === "l" ? "l" : "c1");
+    buildSubTaskRows(subTaskContainerC1, 1, [], { withFile: true, withKoi: true, pdfOnly: true, dateLimitMode: "quarter" });
+    buildSubTaskRows(subTaskContainerL, 1, [], { withFile: true, withKoi: false, withKoiFile: true, koiFilePdfOnly: true, koiLabelText: "File biên bản đào tạo", dateLimitMode: "month" });
+    renderC1();
+    renderL();
+  </script>
+</body>
+</html>

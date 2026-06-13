@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.env.local
+node_modules/
+.cursor/debug-*.log
+
+# Tham chiếu / dev — không đưa lên repo
+refs/
+external-skills/
+
+# Gói deploy cũ (giữ v11 trong repo)
+deploy-max-clean-v8/
+deploy-max-clean-v9/
+deploy-max-clean-v10/
+deploy-max-clean-v8.zip
+deploy-max-clean-v9.zip
+deploy-max-clean-v10.zip
