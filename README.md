@@ -10,14 +10,18 @@ npm start
 
 Mở `http://localhost:3000`.
 
-## Account mặc định
+## Tài khoản đăng nhập
 
-- `admin` / `admin123`
-- `truongphong` / `tp123`
-- `linh` / `linh123`
-- `hieu` / `hieu123`
+Tài khoản mẫu: `admin`, `truongphong`, `linh`, `hieu` (xem `server.js` để biết vai trò).
 
-Mật khẩu có thể override bằng biến môi trường `ADMIN_PASSWORD`, `MANAGER_PASSWORD`, `LINH_PASSWORD`, `HIEU_PASSWORD`.
+**Không ghi mật khẩu trong README.** Trên môi trường thật, đặt mật khẩu qua biến môi trường trong `.env`:
+
+- `ADMIN_PASSWORD`
+- `MANAGER_PASSWORD`
+- `LINH_PASSWORD`
+- `HIEU_PASSWORD`
+
+Tham khảo mẫu trong `.env.example`. Nếu không set biến env, server dùng mật khẩu mặc định chỉ phù hợp cho dev local — **đổi ngay trước khi deploy**.
 
 ## Endpoint nội bộ
 

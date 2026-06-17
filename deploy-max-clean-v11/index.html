@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.26.9/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -255,7 +255,7 @@
       },
       people: {
         title: 'Xu hướng số nhân sự theo tháng',
-        subtitle: 'Số nhân sự tham gia theo từng tháng (T1–T5).'
+        subtitle: 'Số nhân sự tham gia theo từng tháng trong năm hiện tại.'
       },
       overtime: {
         title: 'Xu hướng số giờ tăng ca theo tháng',
@@ -504,21 +504,16 @@
         .filter(row => row.monthKey)
         .sort((a,b)=>String(a.monthKey).localeCompare(String(b.monthKey)));
       const yearRows = monthRows.some(row => row.year === currentYear) ? monthRows.filter(row => row.year === currentYear) : monthRows;
-      const dataRows = yearRows
-        .filter(row => row.tasks !== null)
-        .filter(row => {
-          const m = Number(String(row.monthKey).match(/-(\d{1,2})$/)?.[1] || row.monthNumber || 0);
-          return row.year === 2026 ? m >= 1 && m <= 5 : true;
-        });
+      const dataRows = yearRows.filter(row => row.tasks !== null);
       const currentRow = yearRows.find(row => row.monthKey === currentMonthKey && row.tasks !== null) || dataRows[dataRows.length - 1] || yearRows[yearRows.length - 1] || {};
-      const months = dataRows.map(row => ({
+      const months = fillDashboardMonths(dataRows.map(row => ({
         monthKey: row.monthKey,
         label: row.label,
         tasks: row.tasks ?? 0,
         workHours: row.workHours ?? 0,
         people: row.people ?? 0,
         overtime: row.overtime ?? 0
-      }));
+      })), currentYear);
       return {
         received: currentRow.tasks || 0,
         workHours: currentRow.workHours || 0,
@@ -569,6 +564,30 @@
     function monthLabelFromKey(monthKey){
       const m = Number(String(monthKey || '').match(/-(\d{1,2})$/)?.[1] || 0);
       return m ? `T${m}` : String(monthKey || '');
+    }
+    function fillDashboardMonths(rows, year){
+      const y = Number(year) || new Date().getFullYear();
+      const nowMonth = new Date().getMonth() + 1;
+      const byKey = new Map((rows || []).map(row => [row.monthKey, row]));
+      const maxFromData = [...byKey.keys()]
+        .map(k => Number(String(k).match(/-(\d{1,2})$/)?.[1] || 0))
+        .filter(Boolean)
+        .reduce((max, m) => Math.max(max, m), 0);
+      const endMonth = Math.max(nowMonth, maxFromData);
+      const out = [];
+      for (let m = 1; m <= endMonth; m++){
+        const monthKey = `${y}-${String(m).padStart(2,'0')}`;
+        const existing = byKey.get(monthKey);
+        out.push(existing || {
+          monthKey,
+          label: `T${m}`,
+          tasks: 0,
+          workHours: 0,
+          people: 0,
+          overtime: 0
+        });
+      }
+      return out;
     }
     function parseOnboardFlag(raw){
       if (raw === null || raw === undefined || raw === '') return null;
@@ -954,11 +973,7 @@
         loadDashboard();
         return ()=>{ alive = false; };
       },[user?.username, user?.role, user?.team]);
-      const chartRows = summary.months.length ? summary.months : Array.from({length:5}).map((_,idx)=>({
-        monthKey:`2026-${String(idx+1).padStart(2,'0')}`,
-        label:`T${idx+1}`,
-        tasks:0, workHours:0, people:0, overtime:0
-      }));
+      const chartRows = summary.months.length ? summary.months : fillDashboardMonths([], new Date().getFullYear());
       const latest = chartRows[chartRows.length - 1] || {};
       const previous = chartRows[chartRows.length - 2] || {};
       const deltaTasks = (Number(latest.tasks) || 0) - (Number(previous.tasks) || 0);
@@ -997,16 +1012,6 @@
             onOpenFull={onNavigate ? () => onNavigate(SPM_DASHBOARD.pageId) : null}
           />
         </div>
-        {user?.role === 'Admin' ? (
-          <div className="card p-5">
-            <h2 className="font-extrabold text-lg mb-3">Tài khoản mặc định</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-              {['admin/admin123','truongphong/tp123','linh/linh123','hieu/hieu123'].map(item => (
-                <div key={item} className="info-tile blue"><b className="text-slate-950">{item.split('/')[0]}</b><br/><span className="text-slate-600">{item.split('/')[1]}</span></div>
-              ))}
-            </div>
-          </div>
-        ) : null}
       </div>;
     }
     function SpmOverviewPanel({data, loading=false, onOpenFull}){
